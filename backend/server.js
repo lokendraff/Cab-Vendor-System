@@ -3,8 +3,8 @@ const dotenv = require('dotenv');
 const { errorHandler } = require('./middlewares/errorHandler');
 const connectDB = require('./config/db');
 const vendorRoutes = require('./routes/vendorRoutes');
-
 const cabRoutes = require('./routes/cabRoutes');
+const driverRoutes = require('./routes/driverRoutes');
 
 
 
@@ -27,6 +27,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/cabs', cabRoutes);
+app.use('/api/drivers', driverRoutes);
 
 app.use(errorHandler);
 
