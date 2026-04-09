@@ -1,3 +1,6 @@
+const dns = require('dns');
+dns.setServers(["1.1.1.1"]);
+
 const express = require('express');
 const dotenv = require('dotenv');
 const { errorHandler } = require('./middlewares/errorHandler');
