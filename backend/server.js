@@ -1,6 +1,7 @@
 const dns = require('dns');
 dns.setServers(["1.1.1.1"]);
 const express = require('express');
+const cors = require('cors');
 const dotenv = require('dotenv');
 const { errorHandler } = require('./middlewares/errorHandler');
 const connectDB = require('./config/db');
@@ -21,6 +22,12 @@ const app = express();
 
 // Body parser
 app.use(express.json());
+
+// CORS for frontend
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 
 // Basic Route testing
 app.get('/', (req, res) => {
