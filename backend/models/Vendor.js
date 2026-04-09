@@ -19,6 +19,13 @@ const vendorSchema = new mongoose.Schema({
         enum: ['SuperVendor', 'RegionalVendor', 'CityVendor', 'LocalVendor'],
         default: 'CityVendor'
     },
+
+    delegatedRights: {
+        canOnboardCab: { type: Boolean, default: true },
+        canOnboardDriver: { type: Boolean, default: true },
+        canProcessPayments: { type: Boolean, default: false }
+    },
+    
     // N-Level Hierarchy ka Asli Logic: Self-Referencing 
     parentVendor: {
         type: mongoose.Schema.Types.ObjectId,
