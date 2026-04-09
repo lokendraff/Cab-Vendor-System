@@ -5,7 +5,7 @@ const connectDB = require('./config/db');
 const vendorRoutes = require('./routes/vendorRoutes');
 const cabRoutes = require('./routes/cabRoutes');
 const driverRoutes = require('./routes/driverRoutes');
-
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 
 
@@ -28,6 +28,7 @@ app.get('/', (req, res) => {
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/cabs', cabRoutes);
 app.use('/api/drivers', driverRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.use(errorHandler);
 
