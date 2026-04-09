@@ -7,6 +7,7 @@ const cacheMiddleware = (req, res, next) => {
         return next();
     }
     
+    // Unique key generate karna
     const key = req.originalUrl + '_' + req.vendor._id;
     const cachedResponse = cache.get(key);
 
@@ -15,10 +16,12 @@ const cacheMiddleware = (req, res, next) => {
         return res.status(200).json(cachedResponse);
     } else {
         console.log('Serving from Database');
-        res.originalSend = res.json;
+        
+        const originalJson = res.json.bind(res);
+        
         res.json = (body) => {
             cache.set(key, body);
-            res.originalSend(body);
+            originalJson(body); // Wapas original function call karna safely
         };
         next();
     }

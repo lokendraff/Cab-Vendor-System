@@ -10,14 +10,17 @@ const getSuperVendorDashboard = async (req, res, next) => {
         const vendorId = req.vendor._id;
 
         // Using Promise.all to execute multiple database queries concurrently for better performance
+        // --- backend/controllers/dashboardController.js mein update kar ---
+
+        // Using Promise.all to execute multiple database queries concurrently for better performance
         const [
             subVendors,
             totalCabs,
             activeCabs,
             pendingDocuments
         ] = await Promise.all([
-            // 1. Fetch all immediate sub-vendors
-            Vendor.find({ parentVendor: vendorId }).select('-password'),
+            // 1. Fetch all immediate sub-vendors - ADDED .lean()
+            Vendor.find({ parentVendor: vendorId }).select('-password').lean(),
             
             // 2. Count total fleet under this vendor
             Cab.countDocuments({ vendorId: vendorId }),
@@ -25,7 +28,7 @@ const getSuperVendorDashboard = async (req, res, next) => {
             // 3. Count only active fleet
             Cab.countDocuments({ vendorId: vendorId, isActive: true }),
             
-            // 4. Find drivers with any unverified documents
+            // 4. Count drivers with pending document verification
             Driver.find({
                 vendorId: vendorId,
                 $or: [
@@ -33,8 +36,9 @@ const getSuperVendorDashboard = async (req, res, next) => {
                     { 'documents.registrationCertificate.isVerified': false },
                     { 'documents.permitAndPollution.isVerified': false }
                 ]
-            })
+            }).lean()
         ]);
+
 
         res.status(200).json({
             success: true,
