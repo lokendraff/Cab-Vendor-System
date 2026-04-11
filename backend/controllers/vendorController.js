@@ -112,8 +112,43 @@ const delegateAccess = async (req, res, next) => {
     }
 };
 
+// @desc    Get all sub-vendors under the logged-in vendor
+// @route   GET /api/vendors/sub-vendors
+// @access  Private
+const getSubVendors = async (req, res, next) => {
+    try {
+        const subVendors = await Vendor.find({ parentVendor: req.vendor._id })
+            .select('-password')
+            .lean();
+
+        res.status(200).json({
+            success: true,
+            count: subVendors.length,
+            data: subVendors
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get current logged-in vendor profile
+// @route   GET /api/vendors/me
+// @access  Private
+const getMe = async (req, res, next) => {
+    try {
+        res.status(200).json({
+            success: true,
+            data: req.vendor
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     registerVendor,
     loginVendor,
-    delegateAccess // Ye naya add kiya hai
+    delegateAccess,
+    getSubVendors,
+    getMe,
 };

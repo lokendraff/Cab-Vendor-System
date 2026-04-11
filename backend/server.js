@@ -1,4 +1,9 @@
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
 const express = require('express');
+const cors = require('cors');
 const dotenv = require('dotenv');
 const morgan = require('morgan'); // 1. Naya package import kiya
 const { errorHandler } = require('./middlewares/errorHandler');
@@ -17,6 +22,14 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// CORS — open for all origins in development
+app.use(cors({
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // Body parser
 app.use(express.json());
