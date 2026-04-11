@@ -2,7 +2,7 @@ const Vendor = require('../models/Vendor');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Helper function JWT banane ke liye
+
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '30d',
@@ -48,7 +48,7 @@ const registerVendor = async (req, res, next) => {
             throw new Error('Invalid vendor data');
         }
     } catch (error) {
-        next(error); // Ye error errorHandler middleware me jayega
+        next(error);
     }
 };
 
@@ -77,7 +77,78 @@ const loginVendor = async (req, res, next) => {
     }
 };
 
+
+
+// @desc    Delegate or revoke access rights to a sub-vendor
+// @route   PUT /api/vendors/delegate/:id
+// @access  Private (Only SuperVendor)
+const delegateAccess = async (req, res, next) => {
+    try {
+        const subVendorId = req.params.id;
+        const { canOnboardCab, canOnboardDriver, canProcessPayments } = req.body;
+
+        // Ensure sub-vendor exists and belongs to this SuperVendor
+        const subVendor = await Vendor.findOne({ _id: subVendorId, parentVendor: req.vendor._id });
+
+        if (!subVendor) {
+            res.status(404);
+            throw new Error('Sub-vendor not found or does not belong to you');
+        }
+
+        // Update delegation rights based on request
+        if (canOnboardCab !== undefined) subVendor.delegatedRights.canOnboardCab = canOnboardCab;
+        if (canOnboardDriver !== undefined) subVendor.delegatedRights.canOnboardDriver = canOnboardDriver;
+        if (canProcessPayments !== undefined) subVendor.delegatedRights.canProcessPayments = canProcessPayments;
+
+        await subVendor.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Delegation rights successfully updated',
+            data: subVendor.delegatedRights
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get all sub-vendors under the logged-in vendor
+// @route   GET /api/vendors/sub-vendors
+// @access  Private
+const getSubVendors = async (req, res, next) => {
+    try {
+        const subVendors = await Vendor.find({ parentVendor: req.vendor._id })
+            .select('-password')
+            .lean();
+
+        res.status(200).json({
+            success: true,
+            count: subVendors.length,
+            data: subVendors
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get current logged-in vendor profile
+// @route   GET /api/vendors/me
+// @access  Private
+const getMe = async (req, res, next) => {
+    try {
+        res.status(200).json({
+            success: true,
+            data: req.vendor
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     registerVendor,
-    loginVendor
+    loginVendor,
+    delegateAccess,
+    getSubVendors,
+    getMe,
 };

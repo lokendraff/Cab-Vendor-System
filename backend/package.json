@@ -14,15 +14,25 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
+<<<<<<< HEAD
     "dns": "^0.2.2",
+=======
+    "cors": "^2.8.6",
+>>>>>>> main
     "dotenv": "^17.4.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
+    "morgan": "^1.10.1",
     "multer": "^2.1.1",
+<<<<<<< HEAD
     "multer-storage-cloudinary": "^4.0.0"
   },
   "devDependencies": {
+=======
+    "multer-storage-cloudinary": "^4.0.0",
+    "node-cache": "^5.1.2",
+>>>>>>> main
     "nodemon": "^3.1.14"
   }
 }

@@ -6,25 +6,20 @@ const protect = async (req, res, next) => {
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
-            // Token nikalna (Bearer <token> me se)
             token = req.headers.authorization.split(' ')[1];
-
-            
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
             req.vendor = await Vendor.findById(decoded.id).select('-password');
-
-            next(); 
+            return next(); // ✅ early return — don't fall through to !token check
         } catch (error) {
             console.error(error);
             res.status(401);
-            next(new Error('Not authorized, token failed'));
+            return next(new Error('Not authorized, token failed')); // ✅ early return
         }
     }
 
     if (!token) {
         res.status(401);
-        next(new Error('Not authorized, no token'));
+        return next(new Error('Not authorized, no token'));
     }
 };
 
