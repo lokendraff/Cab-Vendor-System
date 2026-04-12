@@ -1,5 +1,26 @@
 const { verifyDrivingLicense } = require('../services/ocr.service');
 const Document = require('../models/Document'); 
+const Driver = require('../models/Driver');
+
+// @desc    Get all documents for vendor's drivers
+// @route   GET /api/documents
+// @access  Private
+const getMyDocuments = async (req, res) => {
+    try {
+        const drivers = await Driver.find({ vendorId: req.user.id }).select('_id');
+        const driverIds = drivers.map(d => d._id);
+
+        const documents = await Document.find({ driverId: { $in: driverIds } })
+            .populate('driverId', 'name contactNumber') 
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, count: documents.length, data: documents });
+    } catch (error) {
+        console.error("🚨 Fetch Documents Error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
 
 const uploadDriverDocument = async (req, res) => {
     try {
@@ -43,4 +64,4 @@ const uploadDriverDocument = async (req, res) => {
     }
 };
 
-module.exports = { uploadDriverDocument };
+module.exports = { uploadDriverDocument, getMyDocuments };

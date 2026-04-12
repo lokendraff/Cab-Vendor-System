@@ -50,4 +50,18 @@ const addDriver = async (req, res, next) => {
     }
 };
 
-module.exports = { addDriver };
+// @desc    Get logged-in vendor's drivers
+// @route   GET /api/drivers
+// @access  Private
+const getMyDrivers = async (req, res) => {
+    try {
+        const drivers = await Driver.find({ vendorId: req.user.id }).sort({ createdAt: -1 });
+        res.status(200).json({ success: true, count: drivers.length, data: drivers });
+    } catch (error) {
+        console.error("🚨 Fetch Drivers Error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+
+module.exports = { addDriver, getMyDrivers };

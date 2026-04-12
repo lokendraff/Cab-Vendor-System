@@ -18,6 +18,10 @@ const protect = async (req, res, next) => {
                 return res.status(401).json({ success: false, message: 'User no longer exists' });
             }
 
+            // Alias: Some controllers use req.vendor, some use req.user
+            // This ensures both references work correctly across the entire codebase
+            req.vendor = req.user;
+
             next(); 
         } catch (error) {
             console.error("🚨 Token Verification Error:", error);
