@@ -25,23 +25,37 @@ const vendorSchema = new mongoose.Schema({
         canOnboardDriver: { type: Boolean, default: true },
         canProcessPayments: { type: Boolean, default: false }
     },
-    
-    // N-Level Hierarchy ka Asli Logic: Self-Referencing 
+
     parentVendor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vendor',
-        default: null // Agar null hai, matlab ye SuperVendor hai
+        default: null 
     },
+
     isActive: {
         type: Boolean,
         default: true
+    },
+
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    otp: {
+        type: String,
+        default: null
+    },
+    otpExpires: {
+        type: Date,
+        default: null
     }
+
 }, {
-    timestamps: true // Ye createdAt aur updatedAt khud manage karega
+    timestamps: true
 });
 
-// OOPS Principle: Encapsulation & Instance Method [cite: 13]
-// Ek method jo is vendor ke saare sub-vendors ko dhoondh ke layega
+
+// Instance Method
 vendorSchema.methods.getSubVendors = async function() {
     return await mongoose.model('Vendor').find({ parentVendor: this._id });
 };

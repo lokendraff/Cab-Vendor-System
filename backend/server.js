@@ -1,48 +1,65 @@
+require('dotenv').config();
+
 const express = require('express');
-const dotenv = require('dotenv');
-const morgan = require('morgan'); // 1. Naya package import kiya
+const morgan = require('morgan'); 
 const { errorHandler } = require('./middlewares/errorHandler');
 const connectDB = require('./config/db');
+const { checkExpiredDocuments } = require('./jobs/documentExpiryJob');
+const cors = require('cors');
 
-// Route imports
+// Routes
 const vendorRoutes = require('./routes/vendorRoutes');
 const cabRoutes = require('./routes/cabRoutes');
 const driverRoutes = require('./routes/driverRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
-
-// Load env vars
-dotenv.config();
-
-// Connect to Database
-connectDB();
+const authRoutes = require('./routes/authRoutes');
+const documentRoutes = require('./routes/document.routes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
 // Body parser
 app.use(express.json());
 
-// 2. System Monitoring: HTTP request logger middleware
-// 'dev' format gives concise output colored by response status for development use
+app.use(cors());
+
+// Logger
 if (process.env.NODE_ENV !== 'production') {
     app.use(morgan('dev'));
 }
 
-// Basic Route testing
+// Test route
 app.get('/', (req, res) => {
     res.send('Vendor Cab System API is running...');
 });
 
-// Mount routes
+// Routes
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/cabs', cabRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
-// Custom Error Handler Middleware
+// 404 handler
+app.use((req, res, next) => {
+    res.status(404).json({ message: 'Route Not Found' });
+});
+
+// Error handler
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Start server after DB connection
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
 });
+
+checkExpiredDocuments();
+console.log("🤖 Background Jobs Activated");

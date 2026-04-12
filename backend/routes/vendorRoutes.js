@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { registerVendor, loginVendor, delegateAccess } = require('../controllers/vendorController');
-const { protect, authorize } = require('../middlewares/authMiddleware');
+const { delegateAccess } = require('../controllers/vendorController');
+const { protect } = require('../middlewares/authMiddleware'); 
 
-router.post('/register', registerVendor);
-router.post('/login', loginVendor);
 
-router.put('/delegate/:id', protect, authorize('SuperVendor'), delegateAccess);
+// PUT /api/vendors/delegate/:id
+router.put('/delegate/:id', protect, delegateAccess);
 
 module.exports = router;

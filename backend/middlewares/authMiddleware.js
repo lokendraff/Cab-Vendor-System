@@ -6,34 +6,39 @@ const protect = async (req, res, next) => {
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
-            // Token nikalna (Bearer <token> me se)
             token = req.headers.authorization.split(' ')[1];
 
-            
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            // verify token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey');
 
-            req.vendor = await Vendor.findById(decoded.id).select('-password');
+            
+            req.user = await Vendor.findById(decoded.id).select('-password');
+
+            if (!req.user) {
+                return res.status(401).json({ success: false, message: 'User no longer exists' });
+            }
 
             next(); 
         } catch (error) {
-            console.error(error);
-            res.status(401);
-            next(new Error('Not authorized, token failed'));
+            console.error("🚨 Token Verification Error:", error);
+            return res.status(401).json({ success: false, message: 'Not authorized, token failed' });
         }
     }
 
     if (!token) {
-        res.status(401);
-        next(new Error('Not authorized, no token'));
+        return res.status(401).json({ success: false, message: 'Not authorized, no token provided' });
     }
 };
 
-// RBAC (Role-Based Access Control) Middleware
+
+// Role-based authorization middleware
 const authorize = (...roles) => {
     return (req, res, next) => {
-        if (!roles.includes(req.vendor.role)) {
-            res.status(403); // 403 Forbidden
-            return next(new Error(`Role: ${req.vendor.role} is not authorized to access this route`));
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({ 
+                success: false, 
+                message: `Access Denied: Role (${req.user.role}) is not authorized to perform this action` 
+            });
         }
         next();
     };
