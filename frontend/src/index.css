@@ -1,0 +1,291 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════
+   FLEETMASTER — SPACE DARK + GOLDEN UI DESIGN SYSTEM
+   Theme: Deep space black with golden accents, glassmorphism,
+   glowing borders, and sci-fi aesthetics.
+   ═══════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Gold Palette ── */
+  --color-gold-50: #fefcf3;
+  --color-gold-100: #fdf5d9;
+  --color-gold-200: #fbe8a8;
+  --color-gold-300: #f7d76e;
+  --color-gold-400: #f5c842;
+  --color-gold-500: #d4a853;
+  --color-gold-600: #b8860b;
+  --color-gold-700: #96690a;
+  --color-gold-800: #6d4c0e;
+  --color-gold-900: #4a3408;
+
+  /* ── Space Palette ── */
+  --color-space-50: #e8e8ef;
+  --color-space-100: #c4c4d4;
+  --color-space-200: #9a9ab5;
+  --color-space-300: #6b6b8a;
+  --color-space-400: #3d3d5c;
+  --color-space-500: #1a1a2e;
+  --color-space-600: #141425;
+  --color-space-700: #10101e;
+  --color-space-800: #0d0d17;
+  --color-space-900: #0a0a0f;
+  --color-space-950: #060608;
+
+  /* ── Functional Colors ── */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #6366f1;
+
+  /* ── Fonts ── */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Orbitron', 'Inter', sans-serif;
+
+  /* ── Shadows ── */
+  --shadow-golden: 0 0 20px rgba(212, 168, 83, 0.15), 0 0 60px rgba(212, 168, 83, 0.05);
+  --shadow-golden-lg: 0 0 30px rgba(212, 168, 83, 0.25), 0 0 80px rgba(212, 168, 83, 0.1);
+  --shadow-golden-intense: 0 0 40px rgba(245, 200, 66, 0.3), 0 0 100px rgba(245, 200, 66, 0.15);
+
+  /* ── Animations ── */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shimmer: shimmer 3s ease-in-out infinite;
+  --animate-pulse-gold: pulse-gold 2s ease-in-out infinite;
+  --animate-glow: glow-border 3s ease-in-out infinite;
+}
+
+/* ═══════ BASE STYLES ═══════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-space-900);
+  color: #e2e8f0;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-space-800);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gold-700);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-500);
+}
+
+/* ═══════ GLASS PANELS ═══════ */
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(212, 168, 83, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-panel-strong {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 168, 83, 0.2);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(212, 168, 83, 0.3);
+  box-shadow: var(--shadow-golden);
+}
+
+/* ═══════ GOLDEN GLOW EFFECTS ═══════ */
+
+.golden-glow {
+  box-shadow: var(--shadow-golden);
+}
+
+.golden-glow-lg {
+  box-shadow: var(--shadow-golden-lg);
+}
+
+.golden-glow-intense {
+  box-shadow: var(--shadow-golden-intense);
+}
+
+/* Golden text gradient */
+.text-gold-gradient {
+  background: linear-gradient(135deg, var(--color-gold-400), var(--color-gold-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Premium golden border animation */
+.border-glow-gold {
+  position: relative;
+}
+.border-glow-gold::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 168, 83, 0.4),
+    rgba(212, 168, 83, 0.1),
+    rgba(245, 200, 66, 0.4),
+    rgba(212, 168, 83, 0.1)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ═══════ BUTTON STYLES ═══════ */
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--color-gold-500), var(--color-gold-600));
+  color: var(--color-space-900);
+  font-weight: 700;
+  border: none;
+  transition: all 0.3s ease;
+}
+.btn-gold:hover {
+  background: linear-gradient(135deg, var(--color-gold-400), var(--color-gold-500));
+  box-shadow: var(--shadow-golden-lg);
+  transform: translateY(-1px);
+}
+.btn-gold:active {
+  transform: translateY(0);
+}
+.btn-gold:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-gold-400);
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-ghost:hover {
+  background: rgba(212, 168, 83, 0.1);
+  border-color: rgba(212, 168, 83, 0.5);
+  box-shadow: var(--shadow-golden);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  font-weight: 700;
+  border: none;
+  transition: all 0.3s ease;
+}
+.btn-danger:hover {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ═══════ INPUT STYLES ═══════ */
+
+.input-space {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  transition: all 0.3s ease;
+}
+.input-space::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+.input-space:focus {
+  outline: none;
+  border-color: var(--color-gold-500);
+  box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.1), var(--shadow-golden);
+  background: rgba(255, 255, 255, 0.05);
+}
+.input-space:hover:not(:focus) {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ═══════ KEYFRAME ANIMATIONS ═══════ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 168, 83, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(212, 168, 83, 0.4), 0 0 80px rgba(212, 168, 83, 0.1); }
+}
+
+@keyframes glow-border {
+  0%, 100% { border-color: rgba(212, 168, 83, 0.15); }
+  50% { border-color: rgba(212, 168, 83, 0.4); }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(40px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(40px) rotate(-360deg); }
+}
+
+/* ═══════ UTILITY CLASSES ═══════ */
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.bg-space {
+  background-color: var(--color-space-900);
+}
+
+.bg-space-800 {
+  background-color: var(--color-space-800);
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.animate-orbit {
+  animation: orbit 4s linear infinite;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(212, 168, 83, 0.3);
+  color: #fff;
+}
