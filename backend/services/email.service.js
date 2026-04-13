@@ -8,7 +8,10 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    connectionTimeout: 10000, // Fail fast after 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 10000
 });
 
 const sendOTPVerificationEmail = async (vendorEmail, otp) => {

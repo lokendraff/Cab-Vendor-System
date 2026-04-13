@@ -46,10 +46,9 @@ const registerVendor = async (req, res) => {
         await newVendor.save();
 
         //mail from nodemailer service to send OTP to vendor's email 
-        try {
-            await sendOTPVerificationEmail(newVendor.email, generatedOtp);
-        } catch (emailError) {
-            console.error("Failed to send OTP email:", emailError);
+        const emailSent = await sendOTPVerificationEmail(newVendor.email, generatedOtp);
+        if (!emailSent) {
+            console.error("Failed to send OTP email");
             await Vendor.findByIdAndDelete(newVendor._id);
             return res.status(500).json({ success: false, message: "Failed to send OTP email. Please try registering again." });
         }
