@@ -8,6 +8,7 @@ import OTPPage from '../pages/auth/OTPPage';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import NotFoundPage from '../pages/NotFoundPage';
+import LandingPage from '../pages/LandingPage';
 import Dashboard from '../Dashboard'; 
 import CabListPage from '../pages/cabs/CabListPage';
 import AddCabPage from '../pages/cabs/AddCabPage';
@@ -28,6 +29,9 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public Landing Page */}
+      <Route path="/" element={<LandingPage />} />
+
       {/* Public Auth Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -67,8 +71,8 @@ const AppRoutes = () => {
         } />
       </Route>
 
-      {/* Default Redirect */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      {/* Auth Redirects / Landing */}
+      <Route path="/dashboard-redirect" element={<Navigate to="/dashboard" replace />} />
 
       {/* 404 Catch All */}
       <Route path="*" element={<NotFoundPage />} />
