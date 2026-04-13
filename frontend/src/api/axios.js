@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
  * - Global error handling via response interceptor
  */
 const API = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
   timeout: 30000, // 30 seconds (OCR can take 10-15s)
   headers: {
     'Content-Type': 'application/json',
