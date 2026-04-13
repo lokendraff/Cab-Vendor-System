@@ -3,11 +3,22 @@ const Vendor = require('../models/Vendor');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { sendOTPVerificationEmail, sendPasswordResetEmail } = require('../services/email.service');
+const mongoose = require('mongoose');
 
 // 1. REGISTER VENDOR (With OTP)
 const registerVendor = async (req, res) => {
     try {
         const { name, email, password, role, parentVendor } = req.body;
+
+        if (parentVendor) {
+            if (!mongoose.Types.ObjectId.isValid(parentVendor)) {
+                return res.status(400).json({ success: false, message: "Invalid Parent ID format." });
+            }
+            const parentExists = await Vendor.findById(parentVendor);
+            if (!parentExists) {
+                return res.status(404).json({ success: false, message: "Parent vendor not found with the provided ID." });
+            }
+        }
 
         const existingVendor = await Vendor.findOne({ email });
         if (existingVendor) {
@@ -35,7 +46,13 @@ const registerVendor = async (req, res) => {
         await newVendor.save();
 
         //mail from nodemailer service to send OTP to vendor's email 
-        await sendOTPVerificationEmail(newVendor.email, generatedOtp);
+        try {
+            await sendOTPVerificationEmail(newVendor.email, generatedOtp);
+        } catch (emailError) {
+            console.error("Failed to send OTP email:", emailError);
+            await Vendor.findByIdAndDelete(newVendor._id);
+            return res.status(500).json({ success: false, message: "Failed to send OTP email. Please try registering again." });
+        }
 
         res.status(201).json({
             success: true,
@@ -43,6 +60,9 @@ const registerVendor = async (req, res) => {
         });
     } catch (error) {
         console.error("Registration Error:", error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: "Invalid ID format in request." });
+        }
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
