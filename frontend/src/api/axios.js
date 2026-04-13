@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
  */
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
-  timeout: 30000, // 30 seconds (OCR can take 10-15s)
+  timeout: 60000, // 60 seconds (OCR / SMTP can take time)
   headers: {
     'Content-Type': 'application/json',
   },
