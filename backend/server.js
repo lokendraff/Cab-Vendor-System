@@ -22,10 +22,11 @@ const adminRoutes = require('./routes/adminRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 
 const app = express();
+app.set('trust proxy', 1);
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: 100, // Relaxed for production testing
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message: 'Too many auth requests. Please try again later.' },
@@ -33,7 +34,7 @@ const authLimiter = rateLimit({
 
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 500, // Relaxed for production testing
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => req.path.startsWith('/api/auth'),
