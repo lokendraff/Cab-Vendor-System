@@ -10,9 +10,6 @@ const getSuperVendorDashboard = async (req, res, next) => {
         const vendorId = req.vendor._id;
 
         // Using Promise.all to execute multiple database queries concurrently for better performance
-        // --- backend/controllers/dashboardController.js mein update kar ---
-
-        // Using Promise.all to execute multiple database queries concurrently for better performance
         const [
             subVendors,
             totalCabs,

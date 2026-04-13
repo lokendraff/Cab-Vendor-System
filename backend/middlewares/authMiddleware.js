@@ -9,13 +9,18 @@ const protect = async (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
 
             // verify token
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey');
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             
             req.user = await Vendor.findById(decoded.id).select('-password');
 
             if (!req.user) {
                 return res.status(401).json({ success: false, message: 'User no longer exists' });
+            }
+
+            // Security: Prevent blocked vendors from accessing the API
+            if (!req.user.isActive) {
+                return res.status(403).json({ success: false, message: 'Your account has been suspended. Contact your Super Vendor.' });
             }
 
             // Alias: Some controllers use req.vendor, some use req.user

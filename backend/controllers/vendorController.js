@@ -139,7 +139,6 @@ const delegateAccess = async (req, res, next) => {
         const { canOnboardCab, canOnboardDriver, canProcessPayments } = req.body;
 
         // Ensure sub-vendor exists and belongs to this SuperVendor
-        // FIX: Changed req.vendor._id to req.user.id to match authMiddleware
         const subVendor = await Vendor.findOne({ _id: subVendorId, parentVendor: req.user.id });
 
         if (!subVendor) {

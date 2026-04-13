@@ -20,13 +20,13 @@ const cabSchema = new mongoose.Schema({
         enum: ['Petrol', 'Diesel', 'CNG', 'Electric'],
         required: [true, 'Fuel type is required']
     },
-    // Relationship: Kis Vendor ne is cab ko onboard kiya hai
+    // Vendor who onboarded this cab
     vendorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vendor',
         required: true
     },
-    // Relationship: Kaunsa driver is cab ko chala raha hai (shuru me null ho sakta hai)
+    // Driver currently assigned to this cab (null if unassigned)
     driverId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Driver',

@@ -1,14 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { addCab, getMyCabs } = require('../controllers/cabController');
+const { addCab, getMyCabs, assignDriverToCab } = require('../controllers/cabController');
 
-// import middleware
 const { protect, authorize } = require('../middlewares/authMiddleware');
 
-// Route par middleware lagana: 
-// 1. protect -> Check if token is valid or not (Logged in or not)
-// 2. authorize -> check if the logged-in vendor has the right role to access this route or not
+// POST /api/cabs — Onboard a new cab (all vendor roles, delegation enforced in controller)
 router.post('/', protect, authorize('SuperVendor', 'RegionalVendor', 'CityVendor', 'LocalVendor'), addCab);
+
+// GET /api/cabs — Get logged-in vendor's cabs
 router.get('/', protect, getMyCabs);
 
-module.exports = router;
+// PUT /api/cabs/:id/assign-driver — Assign a driver to a cab
+router.put('/:id/assign-driver', protect, assignDriverToCab);
+
+module.exports = router;

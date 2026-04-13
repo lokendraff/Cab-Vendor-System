@@ -8,6 +8,6 @@ const { protect } = require('../middlewares/authMiddleware');
 router.get('/', protect, getMyDocuments);
 
 // POST /api/documents/upload
-router.post('/upload', upload.single('file'), uploadDriverDocument);
+router.post('/upload', protect, upload.single('file'), uploadDriverDocument);
 
 module.exports = router;

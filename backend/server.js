@@ -8,7 +8,7 @@ const { checkExpiredDocuments } = require('./jobs/documentExpiryJob');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
+
 
 // Routes
 const vendorRoutes = require('./routes/vendorRoutes');
@@ -44,7 +44,7 @@ app.use(helmet());
 
 // Body parser
 app.use(express.json());
-app.use(mongoSanitize({ replaceWith: '_' }));
+
 
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',

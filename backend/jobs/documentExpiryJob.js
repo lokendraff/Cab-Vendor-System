@@ -30,7 +30,7 @@ const checkExpiredDocuments = () => {
                 await doc.save();
 
                 // 2. send notification to the vendor about expired document
-                // Purani line hata kar ye daal de (Isse crash nahi hoga agar driver delete ho gaya ho)
+                // Safely resolve vendorId even if the driver document was partially deleted
                 const vendorId = doc.driverId ? (doc.driverId.vendorId || doc.driverId._id) : null;
 
                 if (vendorId) {

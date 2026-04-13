@@ -22,7 +22,7 @@ const documentSchema = new mongoose.Schema({
     expiryDate: {
         type: Date,
         required: true,
-        default: () => new Date(+new Date() + 365*24*60*60*1000) // Default 1 saal baad ki date testing ke liye
+        default: () => new Date(+new Date() + 365*24*60*60*1000) // Default expiry: 1 year from creation
     },
     remarks: {
         type: String,

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// Document schema to track URLs and Expiry Dates (PDF ke point: "flags expired documents" [cite: 106])
+// Embedded document schema to track document URLs and expiry dates for compliance checks
 const documentSchema = new mongoose.Schema({
     documentUrl: { type: String, required: true },
     expiryDate: { type: Date, required: true },
@@ -17,7 +17,7 @@ const driverSchema = new mongoose.Schema({
         required: [true, 'Contact number is required'],
         unique: true
     },
-    // Relationship: Kis Vendor ke under ye driver hai
+    // Vendor this driver belongs to
     vendorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vendor',
@@ -37,12 +37,12 @@ const driverSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// OOPS Principle: Ek instance method jo check karega ki documents expire toh nahi ho gaye
+// OOP: Instance method to check if any driver documents have expired
 driverSchema.methods.checkCompliance = function() {
     const today = new Date();
     const docs = this.documents;
     
-    // Agar koi bhi document ki expiry date aaj se pehle ki hai, toh false return karo
+    // If any document's expiry date is before today, the driver is non-compliant
     if (
         docs.drivingLicense.expiryDate < today ||
         docs.registrationCertificate.expiryDate < today ||

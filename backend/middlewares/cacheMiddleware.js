@@ -7,7 +7,7 @@ const cacheMiddleware = (req, res, next) => {
         return next();
     }
     
-    // Unique key generate karna
+    // Generate a unique cache key per user and route
     const key = req.originalUrl + '_' + req.vendor._id;
     const cachedResponse = cache.get(key);
 
@@ -21,7 +21,7 @@ const cacheMiddleware = (req, res, next) => {
         
         res.json = (body) => {
             cache.set(key, body);
-            originalJson(body); // Wapas original function call karna safely
+            originalJson(body); // Call the original res.json safely
         };
         next();
     }

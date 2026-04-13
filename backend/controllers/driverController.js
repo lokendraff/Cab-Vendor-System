@@ -4,6 +4,12 @@ const addDriver = async (req, res, next) => {
     try {
         const { name, contactNumber, dlExpiry, rcExpiry, permitExpiry } = req.body;
 
+        // Enforce delegation rights for sub-vendors
+        if (req.vendor.role !== 'SuperVendor' && !req.vendor.delegatedRights?.canOnboardDriver) {
+            res.status(403);
+            throw new Error('You do not have permission to onboard drivers. Contact your Super Vendor.');
+        }
+
         const driverExists = await Driver.findOne({ contactNumber });
         if (driverExists) {
             res.status(400);

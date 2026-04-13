@@ -5,7 +5,7 @@ const getMyNotifications = async (req, res) => {
     try {
         // 
         const notifications = await Notification.find({ recipientId: req.user.id })
-                                              .sort({ createdAt: -1 }); // Naye sabse upar
+                                              .sort({ createdAt: -1 }); // Latest first
         
         res.status(200).json({ success: true, count: notifications.length, data: notifications });
     } catch (error) {

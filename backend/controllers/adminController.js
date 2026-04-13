@@ -85,7 +85,7 @@ const getAllVendors = async (req, res) => {
             return res.status(403).json({ success: false, message: "Access Denied." });
         }
 
-        // FIX: Fetch ONLY vendors that have THIS logged-in SuperVendor as their parent
+        // Fetch only vendors that have this SuperVendor as their parent
         const allVendors = await Vendor.find({ parentVendor: req.user.id })
             .select('-password') // Hide passwords
             .populate('parentVendor', 'name role') // Show basic details of the parent
