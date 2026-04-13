@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Zap, Building2, Rocket, Check, Shield, ArrowRight, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -69,6 +69,18 @@ const PaymentPage = () => {
   const [processing, setProcessing] = useState(null); // stores plan.id being processed
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
+  // Dynamically load Razorpay script only on the Payment page
+  useEffect(() => {
+    const scriptId = 'razorpay-checkout-script';
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
   const handlePayment = async (plan) => {
     try {
       setProcessing(plan.id);
@@ -126,6 +138,11 @@ const PaymentPage = () => {
           }
         }
       };
+
+      if (!window.Razorpay) {
+        toast.error('Payment gateway failed to load. Please refresh.');
+        return;
+      }
 
       const razorpay = new window.Razorpay(options);
       razorpay.open();
