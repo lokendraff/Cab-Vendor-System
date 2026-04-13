@@ -20,13 +20,11 @@ const Dashboard = () => {
         setError(null);
 
         if (isSuperVendor) {
-          // Fetch centralized SuperVendor analytics
           const response = await API.get(ENDPOINTS.DASHBOARD.SUPER_VENDOR);
           if (response.data.success) {
             setData(response.data.data);
           }
         } else {
-          // For Sub-vendors, we fetch their specific cabs and drivers to construct basic KPI
           const [cabsRes, docsRes] = await Promise.all([
             API.get(ENDPOINTS.CABS.GET_MY),
             API.get(ENDPOINTS.DOCUMENTS.GET_MY)
@@ -39,7 +37,7 @@ const Dashboard = () => {
 
           setData({
             vendorHierarchy: {
-              totalSubVendors: 0, // Sub-vendors typically don't have sub-vendors of their own in this context
+              totalSubVendors: 0,
             },
             fleetStatus: {
               totalVehicles: totalCabs,
@@ -81,7 +79,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-space-900 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center py-32">
         <Loader size="lg" text="Loading Analytics..." />
       </div>
     );
@@ -89,10 +87,10 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-space-900 flex flex-col items-center justify-center">
+      <div className="flex-1 flex flex-col items-center justify-center py-32">
         <AlertCircle size={48} className="text-red-500 mb-4" />
         <h2 className="text-xl text-white font-semibold">{error}</h2>
-        <button onClick={() => window.location.reload()} className="mt-4 btn-ghost px-4 py-2 rounded-xl">
+        <button onClick={() => window.location.reload()} className="mt-4 btn-ghost px-6 py-2.5 rounded-xl text-sm">
           Try Again
         </button>
       </div>
@@ -106,44 +104,44 @@ const Dashboard = () => {
   const pendingDocsList = data?.compliance?.driversPendingVerification || [];
 
   return (
-    <div className="min-h-screen bg-space-900 text-white p-6 md:p-10 relative overflow-hidden">
+    <div className="p-6 md:p-10 relative overflow-hidden">
       
-      {/* Deep Space Background Effects */}
-      <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-indigo-900/10 rounded-full blur-[150px] pointer-events-none"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-gold-900/10 rounded-full blur-[120px] pointer-events-none"></div>
+      {/* Deep Space Ambient Glow */}
+      <div className="absolute top-[-30%] left-[-15%] w-[700px] h-[700px] bg-gold-500/[0.03] rounded-full blur-[180px] pointer-events-none"></div>
+      <div className="absolute bottom-[-30%] right-[-15%] w-[500px] h-[500px] bg-gold-800/[0.04] rounded-full blur-[140px] pointer-events-none"></div>
 
-      {/* Modern Header Context */}
+      {/* Page Header */}
       <motion.header 
-        initial={{ opacity: 0, y: -30 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6 relative z-10"
+        transition={{ duration: 0.6 }}
+        className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 relative z-10"
       >
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-            <Building2 className="text-indigo-400" size={28} />
+          <div className="p-3 bg-gold-500/10 rounded-2xl border border-gold-500/20 golden-glow">
+            <Building2 className="text-gold-400" size={28} />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold tracking-wide uppercase text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+            <h1 className="text-2xl font-display font-bold tracking-wider uppercase text-gold-gradient">
               Fleet Command Center
             </h1>
-            <p className="text-sm text-gold-400 font-medium tracking-widest uppercase mt-1">
+            <p className="text-sm text-gray-400 font-medium tracking-widest uppercase mt-1">
               {role} PORTAL
             </p>
           </div>
         </div>
 
-        {/* Search & Filter Controls */}
-        <div className="flex gap-4 w-full md:w-auto">
-          <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
+        {/* Search & Filter */}
+        <div className="flex gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-72">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
             <input 
               type="text" 
               placeholder="Search fleet, vendors..." 
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 transition-colors"
+              className="w-full input-space rounded-xl py-2.5 pl-11 pr-4 text-sm"
             />
           </div>
-          <button className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
+          <button className="p-2.5 glass-panel rounded-xl glass-panel-hover transition-all">
             <Filter size={18} className="text-gray-400" />
           </button>
         </div>
@@ -154,121 +152,137 @@ const Dashboard = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10"
       >
         
-        {/* Top KPI Cards (Mapped to real variables) */}
-        <motion.div variants={itemVariants} className="glass-panel p-6 rounded-3xl group cursor-pointer hover:border-emerald-500/30 transition-all">
+        {/* KPI: Active Fleet */}
+        <motion.div variants={itemVariants} className="glass-panel-strong p-6 rounded-2xl group cursor-pointer glass-panel-hover transition-all duration-300">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider">Active Fleet</h3>
-            <Activity className="text-emerald-400" size={20} />
+            <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-widest">Active Fleet</h3>
+            <div className="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/15">
+              <Activity className="text-emerald-400" size={18} />
+            </div>
           </div>
           <div className="flex items-baseline gap-3">
-            <span className="text-5xl font-bold">{activeFleet}</span>
+            <span className="text-4xl font-bold font-display text-white">{activeFleet}</span>
             <span className="text-gray-500 text-sm font-medium">/ {data?.fleetStatus?.totalVehicles || 0} Total</span>
           </div>
         </motion.div>
 
+        {/* KPI: Sub-Vendors or My Cabs */}
         {isSuperVendor ? (
-          <motion.div variants={itemVariants} className="glass-panel p-6 rounded-3xl group cursor-pointer hover:border-blue-500/30 transition-all">
+          <motion.div variants={itemVariants} className="glass-panel-strong p-6 rounded-2xl group cursor-pointer glass-panel-hover transition-all duration-300">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider">Sub-Vendors</h3>
-              <Users className="text-blue-400" size={20} />
+              <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-widest">Sub-Vendors</h3>
+              <div className="p-2 bg-gold-500/10 rounded-lg border border-gold-500/15">
+                <Users className="text-gold-400" size={18} />
+              </div>
             </div>
             <div className="flex items-baseline gap-3">
-              <span className="text-5xl font-bold">{totalSubVendors}</span>
-              <span className="text-blue-400 text-sm font-medium">Managed</span>
+              <span className="text-4xl font-bold font-display text-white">{totalSubVendors}</span>
+              <span className="text-gold-500 text-sm font-medium">Managed</span>
             </div>
           </motion.div>
         ) : (
-          <motion.div variants={itemVariants} className="glass-panel p-6 rounded-3xl group cursor-pointer hover:border-indigo-500/30 transition-all">
+          <motion.div variants={itemVariants} className="glass-panel-strong p-6 rounded-2xl group cursor-pointer glass-panel-hover transition-all duration-300">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider">My Cabs</h3>
-              <CarFront className="text-indigo-400" size={20} />
+              <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-widest">My Cabs</h3>
+              <div className="p-2 bg-gold-500/10 rounded-lg border border-gold-500/15">
+                <CarFront className="text-gold-400" size={18} />
+              </div>
             </div>
             <div className="flex items-baseline gap-3">
-              <span className="text-5xl font-bold">{data?.fleetStatus?.totalVehicles || 0}</span>
-              <span className="text-indigo-400 text-sm font-medium">Total Registered</span>
+              <span className="text-4xl font-bold font-display text-white">{data?.fleetStatus?.totalVehicles || 0}</span>
+              <span className="text-gold-500 text-sm font-medium">Total Registered</span>
             </div>
           </motion.div>
         )}
 
-        {/* Priority Alerts Card */}
-        <motion.div variants={itemVariants} className={`glass-panel p-6 rounded-3xl group cursor-pointer transition-all relative overflow-hidden ${pendingDocsCount > 0 ? 'border-red-500/30 hover:bg-red-500/[0.02]' : 'hover:border-gold-500/30'}`}>
+        {/* KPI: Action Required */}
+        <motion.div variants={itemVariants} className={`glass-panel-strong p-6 rounded-2xl group cursor-pointer transition-all duration-300 relative overflow-hidden ${pendingDocsCount > 0 ? 'border-red-500/20 hover:border-red-500/40' : 'glass-panel-hover'}`}>
           {pendingDocsCount > 0 && (
-            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl pointer-events-none"></div>
           )}
           <div className="flex justify-between items-center mb-4 relative z-10">
-            <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider">Action Required</h3>
-            <AlertCircle className={pendingDocsCount > 0 ? "text-red-400" : "text-emerald-400"} size={20} />
+            <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-widest">Action Required</h3>
+            <div className={`p-2 rounded-lg border ${pendingDocsCount > 0 ? 'bg-red-500/10 border-red-500/15' : 'bg-emerald-500/10 border-emerald-500/15'}`}>
+              <AlertCircle className={pendingDocsCount > 0 ? "text-red-400" : "text-emerald-400"} size={18} />
+            </div>
           </div>
           <div className="flex items-baseline gap-3 relative z-10">
-            <span className="text-5xl font-bold text-white">{pendingDocsCount}</span>
-            <span className={pendingDocsCount > 0 ? "text-red-400 text-sm font-medium" : "text-emerald-400 text-sm font-medium"}>
+            <span className="text-4xl font-bold font-display text-white">{pendingDocsCount}</span>
+            <span className={`text-sm font-medium ${pendingDocsCount > 0 ? "text-red-400" : "text-emerald-400"}`}>
               {pendingDocsCount === 0 ? "All Clear" : "Pending Docs"}
             </span>
           </div>
         </motion.div>
 
-        {/* Fleet Network Visualizer Section (Spans 2 columns) */}
-        <motion.div variants={slideInRight} className="lg:col-span-2 glass-panel p-8 rounded-3xl min-h-[400px] flex flex-col justify-between">
+        {/* Fleet Network Visualizer */}
+        <motion.div variants={slideInRight} className="lg:col-span-2 glass-panel p-8 rounded-2xl min-h-[380px] flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center mb-2">
-              <h2 className="text-xl font-bold">Fleet Network Activity</h2>
-              <button className="text-gold-400 text-sm font-medium flex items-center hover:text-gold-300">
-                View Full Map <ChevronRight size={16} />
+              <h2 className="text-lg font-display font-semibold tracking-wide text-white">Fleet Network Activity</h2>
+              <button className="text-gold-400 text-xs font-semibold flex items-center gap-1 hover:text-gold-300 transition-colors uppercase tracking-wider">
+                View Map <ChevronRight size={14} />
               </button>
             </div>
-            <p className="text-gray-400 text-sm">Real-time pulse of your entire multi-tier vendor network.</p>
+            <p className="text-gray-500 text-sm">Real-time pulse of your multi-tier vendor network.</p>
           </div>
           
-          {/* Animated Mock Network Area */}
-          <div className="flex-1 flex items-center justify-center mt-8 relative">
+          {/* Animated Network Rings */}
+          <div className="flex-1 flex items-center justify-center mt-6 relative">
             <motion.div 
-              animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
+              animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute w-48 h-48 border border-gold-500/30 rounded-full"
+              className="absolute w-44 h-44 border border-gold-500/20 rounded-full"
             ></motion.div>
             <motion.div 
-              animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="absolute w-72 h-72 border border-indigo-500/20 rounded-full"
+              animate={{ scale: [1, 1.08, 1], opacity: [0.15, 0.35, 0.15] }}
+              transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              className="absolute w-72 h-72 border border-gold-700/15 rounded-full"
             ></motion.div>
-            <div className="relative z-10 p-4 bg-space-800 rounded-full border border-gold-500/50 shadow-[0_0_30px_rgba(212,168,83,0.3)]">
-              <Network className="text-gold-400" size={40} />
+            <motion.div 
+              animate={{ scale: [1, 1.03, 1], opacity: [0.08, 0.2, 0.08] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="absolute w-96 h-96 border border-gold-800/10 rounded-full"
+            ></motion.div>
+            <div className="relative z-10 p-5 bg-space-900 rounded-full border border-gold-500/30 golden-glow">
+              <Network className="text-gold-400" size={36} />
             </div>
           </div>
         </motion.div>
 
-        {/* Actionable List Section (Spans 1 column) */}
-        <motion.div variants={slideInRight} className="glass-panel p-6 rounded-3xl flex flex-col">
-          <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-            <AlertCircle size={18} className="text-gold-400" />
+        {/* Priority Verifications */}
+        <motion.div variants={slideInRight} className="glass-panel p-6 rounded-2xl flex flex-col">
+          <h2 className="text-sm font-display font-semibold mb-5 flex items-center gap-2 tracking-wide uppercase text-gray-200">
+            <AlertCircle size={16} className="text-gold-400" />
             Priority Verifications
           </h2>
           
           {pendingDocsList.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50 py-10">
-              <ShieldCheck size={40} className="text-emerald-400 mb-3" />
-              <p className="text-sm font-medium text-gray-300">No pending verifications.</p>
-              <p className="text-xs text-gray-500">Your fleet is fully compliant.</p>
+            <div className="flex-1 flex flex-col items-center justify-center text-center py-10">
+              <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/15 mb-4">
+                <ShieldCheck size={28} className="text-emerald-400" />
+              </div>
+              <p className="text-sm font-medium text-gray-300">No pending verifications</p>
+              <p className="text-xs text-gray-600 mt-1">Your fleet is fully compliant.</p>
             </div>
           ) : (
-            <div className="space-y-4 flex-1 h-[260px] overflow-y-auto pr-2 custom-scrollbar">
-              {pendingDocsList.slice(0, 4).map((doc, index) => (
+            <div className="space-y-3 flex-1 max-h-[280px] overflow-y-auto pr-1">
+              {pendingDocsList.slice(0, 5).map((doc, index) => (
                 <motion.div 
                   key={doc._id || index}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + (index * 0.1) }}
-                  className="p-4 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.06] cursor-pointer transition-colors"
+                  transition={{ delay: 0.5 + (index * 0.08) }}
+                  className="p-3.5 glass-panel rounded-xl glass-panel-hover cursor-pointer transition-all duration-200"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="text-sm font-semibold">{doc.documentType} Verification</h4>
-                      <p className="text-xs text-gray-400 mt-1">Driver: {doc.driverId?.name || "Unknown"}</p>
+                      <h4 className="text-sm font-semibold text-gray-200">{doc.documentType} Verification</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">Driver: {doc.driverId?.name || "Unknown"}</p>
                     </div>
-                    <span className="text-xs font-medium px-2 py-1 bg-amber-500/10 text-amber-400 rounded-md">Pending</span>
+                    <span className="text-[10px] font-bold px-2 py-1 bg-amber-500/10 text-amber-400 rounded-md border border-amber-500/15 uppercase tracking-wider">Pending</span>
                   </div>
                 </motion.div>
               ))}
@@ -276,7 +290,7 @@ const Dashboard = () => {
           )}
 
           {pendingDocsCount > 0 && (
-            <button className="w-full py-3 mt-4 text-sm text-gray-400 hover:text-white border border-white/10 rounded-xl hover:bg-white/5 transition-all">
+            <button className="w-full py-2.5 mt-4 text-xs font-semibold text-gold-400 border border-gold-500/20 rounded-xl hover:bg-gold-500/5 hover:border-gold-500/30 transition-all uppercase tracking-wider">
               View All {pendingDocsCount} Requests
             </button>
           )}

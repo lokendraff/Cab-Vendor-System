@@ -54,21 +54,28 @@ const AddCabPage = () => {
   };
 
   return (
-    <div className="p-6 md:p-10 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <Link to="/cabs" className="inline-flex items-center gap-2 text-gray-400 hover:text-gold-400 transition-colors mb-4 text-sm font-medium">
-          <ArrowLeft size={16} /> Back to Fleet
+    <div className="p-6 md:p-10 max-w-4xl mx-auto relative">
+      {/* Ambient glow */}
+      <div className="absolute top-[-10%] left-[20%] w-[400px] h-[400px] bg-gold-500/[0.03] rounded-full blur-[150px] pointer-events-none"></div>
+
+      <div className="mb-8 relative z-10">
+        <Link to="/cabs" className="inline-flex items-center gap-2 text-gray-500 hover:text-gold-400 transition-colors mb-5 text-xs font-semibold uppercase tracking-wider">
+          <ArrowLeft size={14} /> Back to Fleet
         </Link>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <CarFront className="text-gold-400" /> Onboard New Vehicle
+        <h1 className="text-2xl font-display font-bold tracking-wide flex items-center gap-3 text-white">
+          <div className="p-2 bg-gold-500/10 rounded-lg border border-gold-500/20">
+            <CarFront className="text-gold-400" size={22} />
+          </div>
+          Onboard New Vehicle
         </h1>
-        <p className="text-gray-400 text-sm mt-1">Enter the vehicle details to add it to your active fleet.</p>
+        <p className="text-gray-500 text-sm mt-2 ml-12">Enter the vehicle details to add it to your active fleet.</p>
       </div>
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-panel rounded-3xl p-6 md:p-10 border-t-4 border-t-gold-500"
+        transition={{ delay: 0.1 }}
+        className="glass-panel-strong rounded-2xl p-6 md:p-10 border-t-2 border-t-gold-500/50 golden-glow relative z-10"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -114,12 +121,12 @@ const AddCabPage = () => {
 
           </div>
 
-          <div className="pt-6 mt-6 border-t border-white/10 flex justify-end gap-4">
+          <div className="pt-6 mt-6 border-t border-white/[0.06] flex justify-end gap-3">
             <Button variant="ghost" onClick={() => navigate('/cabs')} type="button">
               Cancel
             </Button>
             <Button variant="gold" type="submit" loading={loading}>
-              <Save size={18} /> Save Vehicle
+              <Save size={16} /> Save Vehicle
             </Button>
           </div>
         </form>

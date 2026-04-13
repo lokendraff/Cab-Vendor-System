@@ -1,0 +1,177 @@
+import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Lock, Zap, ShieldCheck } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+import API from '../../api/axios';
+import ENDPOINTS from '../../api/endpoints';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import StarField from '../../components/layout/StarField';
+
+const ResetPasswordPage = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = useMemo(() => searchParams.get('token') || '', [searchParams]);
+
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ newPassword: '', confirmPassword: '' });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!token) {
+      toast.error('Invalid or missing reset link.');
+      return;
+    }
+    if (form.newPassword !== form.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data } = await API.post(ENDPOINTS.AUTH.RESET_PASSWORD, {
+        token,
+        newPassword: form.newPassword,
+      });
+      if (data.success) {
+        toast.success(data.message || 'Password updated');
+        setForm({ newPassword: '', confirmPassword: '' });
+        navigate('/login');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Reset failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const invalidLink = !token;
+
+  return (
+    <div className="min-h-screen bg-space-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <StarField />
+
+      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-gold-500/5 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-indigo-900/10 rounded-full blur-[120px] pointer-events-none" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.7, ease: 'easeOut' }}
+        className="relative z-10 w-full max-w-md"
+      >
+        <div className="glass-panel-strong rounded-3xl p-8 md:p-10 golden-glow">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-center mb-8"
+          >
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gold-500/10 border border-gold-500/20 mb-4">
+              <ShieldCheck className="text-gold-400" size={32} />
+            </div>
+            <h1 className="text-2xl font-bold font-display tracking-wider text-gold-gradient">
+              RESET PASSWORD
+            </h1>
+            <p className="text-gray-400 text-sm mt-2">
+              Choose a new password for your account
+            </p>
+          </motion.div>
+
+          {invalidLink ? (
+            <div className="text-center space-y-4">
+              <p className="text-gray-500 text-sm">
+                This link is invalid or incomplete. Request a new reset email.
+              </p>
+              <Link
+                to="/forgot-password"
+                className="inline-block text-gold-400 hover:text-gold-300 font-medium text-sm transition-colors"
+              >
+                Forgot password
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <Input
+                  label="New password"
+                  type="password"
+                  name="newPassword"
+                  placeholder="At least 8 characters"
+                  value={form.newPassword}
+                  onChange={handleChange}
+                  icon={Lock}
+                  required
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35, duration: 0.5 }}
+              >
+                <Input
+                  label="Confirm password"
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Repeat new password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  icon={Lock}
+                  required
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45, duration: 0.5 }}
+              >
+                <Button type="submit" variant="gold" fullWidth loading={loading}>
+                  <Zap size={18} />
+                  Update password
+                </Button>
+              </motion.div>
+            </form>
+          )}
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.55, duration: 0.5 }}
+            className="mt-6 text-center"
+          >
+            <p className="text-gray-500 text-sm">
+              <Link
+                to="/login"
+                className="text-gold-400 hover:text-gold-300 font-medium transition-colors"
+              >
+                Back to login
+              </Link>
+            </p>
+          </motion.div>
+        </div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.75, duration: 0.5 }}
+          className="text-center text-gray-600 text-xs mt-6"
+        >
+          FleetMaster SaaS — AI-Powered Fleet Management
+        </motion.p>
+      </motion.div>
+    </div>
+  );
+};
+
+export default ResetPasswordPage;

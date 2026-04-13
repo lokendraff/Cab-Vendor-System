@@ -6,6 +6,9 @@ const { errorHandler } = require('./middlewares/errorHandler');
 const connectDB = require('./config/db');
 const { checkExpiredDocuments } = require('./jobs/documentExpiryJob');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
 
 // Routes
 const vendorRoutes = require('./routes/vendorRoutes');
@@ -20,10 +23,33 @@ const paymentRoutes = require('./routes/paymentRoutes');
 
 const app = express();
 
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many auth requests. Please try again later.' },
+});
+
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.path.startsWith('/api/auth'),
+    message: { success: false, message: 'Too many requests. Please try again later.' },
+});
+
+app.use(helmet());
+
 // Body parser
 app.use(express.json());
+app.use(mongoSanitize({ replaceWith: '_' }));
 
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+}));
+app.use(apiLimiter);
 
 // Logger
 if (process.env.NODE_ENV !== 'production') {
@@ -41,6 +67,7 @@ app.use('/api/cabs', cabRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/auth', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);

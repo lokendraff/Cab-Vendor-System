@@ -26,7 +26,6 @@ const RegisterPage = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    // Clear error on change
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: '' });
     }
@@ -61,7 +60,6 @@ const RegisterPage = () => {
 
       if (data.success) {
         toast.success(data.message || 'Registration successful! Check your email for OTP.');
-        // Navigate to OTP page with email in state
         navigate('/verify-otp', { state: { email: form.email } });
       }
     } catch (error) {
@@ -72,7 +70,6 @@ const RegisterPage = () => {
     }
   };
 
-  // Animation variants
   const inputAnim = (delay) => ({
     initial: { opacity: 0, x: -20 },
     animate: { opacity: 1, x: 0 },
@@ -82,8 +79,6 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen bg-space-900 flex items-center justify-center p-4 relative overflow-hidden">
       <StarField />
-
-      {/* Ambient glow */}
       <div className="absolute top-[-15%] right-[-5%] w-[500px] h-[500px] bg-gold-500/5 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[-15%] left-[-5%] w-[400px] h-[400px] bg-indigo-900/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -93,9 +88,7 @@ const RegisterPage = () => {
         transition={{ duration: 0.7, ease: 'easeOut' }}
         className="relative z-10 w-full max-w-lg"
       >
-        {/* Card */}
         <div className="glass-panel-strong rounded-3xl p-8 md:p-10 golden-glow">
-          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -113,63 +106,21 @@ const RegisterPage = () => {
             </p>
           </motion.div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <motion.div {...inputAnim(0.2)}>
-              <Input
-                label="Full Name"
-                name="name"
-                placeholder="John Doe"
-                value={form.name}
-                onChange={handleChange}
-                icon={User}
-                error={errors.name}
-                required
-              />
+              <Input label="Full Name" name="name" placeholder="John Doe" value={form.name} onChange={handleChange} icon={User} error={errors.name} required />
             </motion.div>
 
             <motion.div {...inputAnim(0.25)}>
-              <Input
-                label="Email Address"
-                type="email"
-                name="email"
-                placeholder="vendor@company.com"
-                value={form.email}
-                onChange={handleChange}
-                icon={Mail}
-                error={errors.email}
-                required
-              />
+              <Input label="Email Address" type="email" name="email" placeholder="vendor@company.com" value={form.email} onChange={handleChange} icon={Mail} error={errors.email} required />
             </motion.div>
 
-            {/* Two column for passwords */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <motion.div {...inputAnim(0.3)}>
-                <Input
-                  label="Password"
-                  type="password"
-                  name="password"
-                  placeholder="Min. 6 chars"
-                  value={form.password}
-                  onChange={handleChange}
-                  icon={Lock}
-                  error={errors.password}
-                  required
-                />
+                <Input label="Password" type="password" name="password" placeholder="Min. 6 chars" value={form.password} onChange={handleChange} icon={Lock} error={errors.password} required />
               </motion.div>
-
               <motion.div {...inputAnim(0.35)}>
-                <Input
-                  label="Confirm Password"
-                  type="password"
-                  name="confirmPassword"
-                  placeholder="Repeat password"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  icon={Lock}
-                  error={errors.confirmPassword}
-                  required
-                />
+                <Input label="Confirm Password" type="password" name="confirmPassword" placeholder="Repeat password" value={form.confirmPassword} onChange={handleChange} icon={Lock} error={errors.confirmPassword} required />
               </motion.div>
             </div>
 
@@ -188,51 +139,20 @@ const RegisterPage = () => {
             </motion.div>
 
             <motion.div {...inputAnim(0.45)}>
-              <Input
-                label="Parent Vendor ID (Optional)"
-                name="parentVendor"
-                placeholder="Leave empty if Super Vendor"
-                value={form.parentVendor}
-                onChange={handleChange}
-              />
-              <p className="text-gray-600 text-xs mt-1 pl-1">
-                Enter the ID of the vendor who invited you, or leave blank to register as Super Vendor.
-              </p>
+              <Input label="Parent Vendor ID (Optional)" name="parentVendor" placeholder="Leave empty if Super Vendor" value={form.parentVendor} onChange={handleChange} />
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-              className="pt-2"
-            >
-              <Button
-                type="submit"
-                variant="gold"
-                fullWidth
-                loading={loading}
-              >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.5 }} className="pt-2">
+              <Button type="submit" variant="gold" fullWidth loading={loading}>
                 <UserPlus size={18} />
                 Create Account
               </Button>
             </motion.div>
           </form>
 
-          {/* Footer */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="mt-6 text-center"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.5 }} className="mt-6 text-center">
             <p className="text-gray-500 text-sm">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="text-gold-400 hover:text-gold-300 font-medium transition-colors"
-              >
-                Sign in
-              </Link>
+              Already have an account? <Link to="/login" className="text-gold-400 hover:text-gold-300 font-medium transition-colors">Sign in</Link>
             </p>
           </motion.div>
         </div>

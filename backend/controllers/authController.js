@@ -1,7 +1,8 @@
+const crypto = require('crypto');
 const Vendor = require('../models/Vendor');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { sendOTPVerificationEmail } = require('../services/email.service'); 
+const { sendOTPVerificationEmail, sendPasswordResetEmail } = require('../services/email.service');
 
 // 1. REGISTER VENDOR (With OTP)
 const registerVendor = async (req, res) => {
@@ -98,4 +99,82 @@ const loginVendor = async (req, res) => {
     }
 };
 
-module.exports = { registerVendor, verifyEmailOTP, loginVendor };
+const FORGOT_PASSWORD_RESPONSE = {
+    success: true,
+    message: 'If an account exists for that email, you will receive password reset instructions shortly.',
+};
+
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email || typeof email !== 'string' || !email.trim()) {
+            return res.status(400).json({ success: false, message: 'Email is required' });
+        }
+
+        const trimmed = email.trim();
+        const vendor = await Vendor.findOne({ email: trimmed });
+        if (!vendor) {
+            return res.status(200).json(FORGOT_PASSWORD_RESPONSE);
+        }
+
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+        vendor.passwordResetToken = hashedToken;
+        vendor.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000);
+        await vendor.save();
+
+        const baseUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+        const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+
+        const sent = await sendPasswordResetEmail(vendor.email, resetUrl);
+        if (!sent) {
+            vendor.passwordResetToken = null;
+            vendor.passwordResetExpires = null;
+            await vendor.save();
+            return res.status(500).json({ success: false, message: 'Could not send reset email. Try again later.' });
+        }
+
+        return res.status(200).json(FORGOT_PASSWORD_RESPONSE);
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        return res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || typeof token !== 'string' || !token.trim()) {
+            return res.status(400).json({ success: false, message: 'Reset token is required' });
+        }
+        if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+            return res.status(400).json({ success: false, message: 'New password must be at least 8 characters' });
+        }
+
+        const hashedToken = crypto.createHash('sha256').update(token.trim()).digest('hex');
+
+        const vendor = await Vendor.findOne({
+            passwordResetToken: hashedToken,
+            passwordResetExpires: { $gt: new Date() },
+        }).select('+passwordResetToken +passwordResetExpires');
+
+        if (!vendor) {
+            return res.status(400).json({ success: false, message: 'Invalid or expired reset link. Please request a new one.' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        vendor.password = await bcrypt.hash(newPassword, salt);
+        vendor.passwordResetToken = null;
+        vendor.passwordResetExpires = null;
+        await vendor.save();
+
+        return res.status(200).json({ success: true, message: 'Password reset successful. You can log in with your new password.' });
+    } catch (error) {
+        console.error('Reset password error:', error);
+        return res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
+module.exports = { registerVendor, verifyEmailOTP, loginVendor, forgotPassword, resetPassword };

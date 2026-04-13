@@ -1,41 +1,29 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { LogIn, Mail, Lock, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Mail, Zap, KeyRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import API from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
-import useAuth from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import StarField from '../../components/layout/StarField';
 
-const LoginPage = () => {
-  const navigate = useNavigate();
-  const { login } = useAuth();
+const ForgotPasswordPage = () => {
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ email: '', password: '' });
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const [email, setEmail] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { data } = await API.post(ENDPOINTS.AUTH.LOGIN, form);
-
+      const { data } = await API.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
       if (data.success) {
-        login(data.token, data.role, data.vendorId);
-        toast.success(data.message || 'Login successful!');
-        navigate('/dashboard');
+        toast.success(data.message || 'Check your email for reset instructions.');
       }
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Login failed';
-      toast.error(msg);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -45,7 +33,6 @@ const LoginPage = () => {
     <div className="min-h-screen bg-space-900 flex items-center justify-center p-4 relative overflow-hidden">
       <StarField />
 
-      {/* Ambient glow effects */}
       <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-gold-500/5 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-indigo-900/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -55,9 +42,7 @@ const LoginPage = () => {
         transition={{ duration: 0.7, ease: 'easeOut' }}
         className="relative z-10 w-full max-w-md"
       >
-        {/* Card */}
         <div className="glass-panel-strong rounded-3xl p-8 md:p-10 golden-glow">
-          {/* Logo / Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -65,17 +50,16 @@ const LoginPage = () => {
             className="text-center mb-8"
           >
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gold-500/10 border border-gold-500/20 mb-4">
-              <Zap className="text-gold-400" size={32} />
+              <KeyRound className="text-gold-400" size={32} />
             </div>
             <h1 className="text-2xl font-bold font-display tracking-wider text-gold-gradient">
-              FLEETMASTER
+              FORGOT PASSWORD
             </h1>
             <p className="text-gray-400 text-sm mt-2">
-              Sign in to your vendor portal
+              Enter your email and we will send you a reset link
             </p>
           </motion.div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -87,79 +71,46 @@ const LoginPage = () => {
                 type="email"
                 name="email"
                 placeholder="vendor@fleetmaster.com"
-                value={form.email}
-                onChange={handleChange}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 icon={Mail}
                 required
               />
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-            >
-              <Input
-                label="Password"
-                type="password"
-                name="password"
-                placeholder="Enter your password"
-                value={form.password}
-                onChange={handleChange}
-                icon={Lock}
-                required
-              />
-              <div className="flex justify-end mt-2">
-                <Link
-                  to="/forgot-password"
-                  className="text-xs font-medium text-gold-400 hover:text-gold-300 transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-            </motion.div>
-
-            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
             >
-              <Button
-                type="submit"
-                variant="gold"
-                fullWidth
-                loading={loading}
-              >
-                <LogIn size={18} />
-                Sign In
+              <Button type="submit" variant="gold" fullWidth loading={loading}>
+                <Zap size={18} />
+                Send reset link
               </Button>
             </motion.div>
           </form>
 
-          {/* Footer Link */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
             className="mt-6 text-center"
           >
             <p className="text-gray-500 text-sm">
-              Don't have an account?{' '}
               <Link
-                to="/register"
+                to="/login"
                 className="text-gold-400 hover:text-gold-300 font-medium transition-colors"
               >
-                Register here
+                Back to login
               </Link>
             </p>
           </motion.div>
         </div>
 
-        {/* Bottom branding */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
           className="text-center text-gray-600 text-xs mt-6"
         >
           FleetMaster SaaS — AI-Powered Fleet Management
@@ -169,4 +120,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default ForgotPasswordPage;

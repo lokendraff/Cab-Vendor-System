@@ -34,4 +34,33 @@ const sendOTPVerificationEmail = async (vendorEmail, otp) => {
     }
 };
 
-module.exports = { sendOTPVerificationEmail };
+const sendPasswordResetEmail = async (vendorEmail, resetUrl) => {
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: vendorEmail,
+            subject: 'FleetMaster — Reset your password',
+            html: `
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; background: #0a0a0f; color: #e2e8f0; border-radius: 12px; border: 1px solid rgba(212, 168, 83, 0.2);">
+                    <h1 style="margin: 0 0 8px; font-size: 22px; letter-spacing: 0.12em; color: #f5c842;">FLEETMASTER</h1>
+                    <p style="margin: 0 0 20px; font-size: 13px; color: #94a3b8;">Password reset request</p>
+                    <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1;">We received a request to reset the password for your vendor account. Click the button below to choose a new password. This link expires in <strong>15 minutes</strong>.</p>
+                    <div style="text-align: center; margin: 28px 0;">
+                        <a href="${resetUrl}" style="display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #d4a853, #b8860b); color: #0a0a0f; font-weight: 700; text-decoration: none; border-radius: 10px; font-size: 14px;">Reset password</a>
+                    </div>
+                    <p style="font-size: 12px; color: #64748b; word-break: break-all;">If the button does not work, paste this URL into your browser:<br/><span style="color: #d4a853;">${resetUrl}</span></p>
+                    <p style="font-size: 12px; color: #64748b; margin-top: 24px;">If you did not request this, you can ignore this email.</p>
+                </div>
+            `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('📧 Password reset email sent to:', vendorEmail);
+        return true;
+    } catch (error) {
+        console.error('🚨 Error sending password reset email:', error);
+        return false;
+    }
+};
+
+module.exports = { sendOTPVerificationEmail, sendPasswordResetEmail };

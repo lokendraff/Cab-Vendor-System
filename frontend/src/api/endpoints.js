@@ -7,10 +7,14 @@ const ENDPOINTS = {
     REGISTER: `${BASE}/auth/register`,
     VERIFY_OTP: `${BASE}/auth/verify-otp`,
     LOGIN: `${BASE}/auth/login`,
+    FORGOT_PASSWORD: `${BASE}/auth/forgot-password`,
+    RESET_PASSWORD: `${BASE}/auth/reset-password`,
   },
 
   // Vendors
   VENDORS: {
+    ME: `${BASE}/vendors/me`,
+    ME_PASSWORD: `${BASE}/vendors/me/password`,
     DELEGATE: (id) => `${BASE}/vendors/delegate/${id}`,
   },
 
@@ -41,6 +45,7 @@ const ENDPOINTS = {
   NOTIFICATIONS: {
     GET_MY: `${BASE}/notifications`,
     MARK_READ: (id) => `${BASE}/notifications/${id}/read`,
+    MARK_ALL_READ: `${BASE}/notifications/read-all`,
   },
 
   // Admin

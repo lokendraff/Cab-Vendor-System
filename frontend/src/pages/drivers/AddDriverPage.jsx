@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { Users, ArrowLeft, Upload, Save, FileText } from 'lucide-react';
+import { Users, ArrowLeft, Upload, Save, FileText, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import API from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
@@ -95,26 +95,33 @@ const AddDriverPage = () => {
   ];
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl mx-auto">
-      <div className="mb-8">
-        <Link to="/drivers" className="inline-flex items-center gap-2 text-gray-400 hover:text-gold-400 transition-colors mb-4 text-sm font-medium">
-          <ArrowLeft size={16} /> Back to Drivers
+    <div className="p-6 md:p-10 max-w-5xl mx-auto relative">
+      {/* Ambient glow */}
+      <div className="absolute top-[-10%] right-[10%] w-[400px] h-[400px] bg-gold-500/[0.03] rounded-full blur-[150px] pointer-events-none"></div>
+
+      <div className="mb-8 relative z-10">
+        <Link to="/drivers" className="inline-flex items-center gap-2 text-gray-500 hover:text-gold-400 transition-colors mb-5 text-xs font-semibold uppercase tracking-wider">
+          <ArrowLeft size={14} /> Back to Drivers
         </Link>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Users className="text-gold-400" /> Onboard New Driver
+        <h1 className="text-2xl font-display font-bold tracking-wide flex items-center gap-3 text-white">
+          <div className="p-2 bg-gold-500/10 rounded-lg border border-gold-500/20">
+            <Users className="text-gold-400" size={22} />
+          </div>
+          Onboard New Driver
         </h1>
-        <p className="text-gray-400 text-sm mt-1">Enter details and upload required compliance documents.</p>
+        <p className="text-gray-500 text-sm mt-2 ml-12">Enter details and upload required compliance documents.</p>
       </div>
 
       <motion.form 
         onSubmit={handleSubmit}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
+        transition={{ delay: 0.1 }}
+        className="space-y-6 relative z-10"
       >
         {/* Personal Details Section */}
-        <div className="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-gold-500">
-          <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
+        <div className="glass-panel-strong rounded-2xl p-6 md:p-8 border-t-2 border-t-gold-500/50">
+          <h2 className="text-sm font-display font-semibold mb-6 flex items-center gap-2 text-gray-200 tracking-wide uppercase">
             Personal Details
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -139,18 +146,30 @@ const AddDriverPage = () => {
         </div>
 
         {/* Documents Upload Section */}
-        <div className="glass-panel rounded-3xl p-6 md:p-8">
-          <h2 className="text-lg font-semibold mb-6 flex items-center gap-2 text-gray-200">
-            <FileText size={18} className="text-gold-400" /> Compliance Documents
+        <div className="glass-panel rounded-2xl p-6 md:p-8">
+          <h2 className="text-sm font-display font-semibold mb-6 flex items-center gap-2 text-gray-200 tracking-wide uppercase">
+            <FileText size={16} className="text-gold-400" /> Compliance Documents
           </h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {docConfigs.map((doc, idx) => (
-              <div key={idx} className="bg-space-800 border border-white/5 p-5 rounded-2xl">
-                <label className="block text-sm font-medium text-gray-300 mb-3">{doc.label} <span className="text-gold-400">*</span></label>
+              <motion.div 
+                key={idx} 
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + idx * 0.08 }}
+                className="bg-space-800/50 border border-white/[0.04] p-5 rounded-2xl hover:border-gold-500/15 transition-all duration-300"
+              >
+                <label className="block text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">
+                  {doc.label} <span className="text-gold-400">*</span>
+                </label>
                 
-                {/* Custom File Upload Box */}
-                <div className="relative border-2 border-dashed border-white/20 hover:border-gold-400/50 rounded-xl p-4 text-center cursor-pointer transition-colors group mb-4">
+                {/* File Upload Box */}
+                <div className={`relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all duration-300 group mb-4 ${
+                  files[doc.name] 
+                    ? 'border-emerald-500/30 bg-emerald-500/[0.03]' 
+                    : 'border-white/10 hover:border-gold-400/40 hover:bg-gold-500/[0.02]'
+                }`}>
                   <input 
                     type="file" 
                     name={doc.name} 
@@ -159,33 +178,38 @@ const AddDriverPage = () => {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     required
                   />
-                  <Upload className="mx-auto text-gray-500 group-hover:text-gold-400 mb-2 transition-colors" size={24} />
                   {files[doc.name] ? (
-                    <p className="text-xs text-emerald-400 font-medium truncate">{files[doc.name].name}</p>
+                    <>
+                      <CheckCircle2 className="mx-auto text-emerald-400 mb-2" size={22} />
+                      <p className="text-xs text-emerald-400 font-semibold truncate">{files[doc.name].name}</p>
+                    </>
                   ) : (
-                    <p className="text-xs text-gray-400">Click to upload or drag & drop</p>
+                    <>
+                      <Upload className="mx-auto text-gray-600 group-hover:text-gold-400 mb-2 transition-colors" size={22} />
+                      <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">Click or drop file</p>
+                    </>
                   )}
                 </div>
 
                 <Input
-                  label="Valid Until (Expiry)"
+                  label="Expiry Date"
                   name={doc.expiryName}
                   type="date"
                   value={form[doc.expiryName]}
                   onChange={handleChange}
                   required
                 />
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
 
-        <div className="flex justify-end gap-4 mt-8">
+        <div className="flex justify-end gap-3 pt-2">
           <Button variant="ghost" onClick={() => navigate('/drivers')} type="button">
             Cancel
           </Button>
           <Button variant="gold" type="submit" loading={loading}>
-            <Save size={18} /> Upload & Onboard Driver
+            <Save size={16} /> Upload & Onboard
           </Button>
         </div>
       </motion.form>

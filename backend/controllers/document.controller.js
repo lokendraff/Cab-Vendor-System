@@ -2,9 +2,7 @@ const { verifyDrivingLicense } = require('../services/ocr.service');
 const Document = require('../models/Document'); 
 const Driver = require('../models/Driver');
 
-// @desc    Get all documents for vendor's drivers
-// @route   GET /api/documents
-// @access  Private
+
 const getMyDocuments = async (req, res) => {
     try {
         const drivers = await Driver.find({ vendorId: req.user.id }).select('_id');
@@ -21,14 +19,13 @@ const getMyDocuments = async (req, res) => {
     }
 };
 
-
 const uploadDriverDocument = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Please upload an image file." });
         }
 
-        const uploadedImageUrl = req.file.path; // Cloudinary URL
+        const uploadedImageUrl = req.file.path; 
         const { driverId, documentType } = req.body; 
 
         let ocrResult = { isVerified: false, message: "Not processed" };
@@ -36,7 +33,6 @@ const uploadDriverDocument = async (req, res) => {
         if (documentType === 'DL') {
             console.log("⏳ Upload done! AI Engine starting... (First time takes 10-15 secs)");
             ocrResult = await verifyDrivingLicense(uploadedImageUrl);
-            
         } else {
             ocrResult.message = "Manual Verification Required for this doc type";
         }

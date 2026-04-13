@@ -48,7 +48,9 @@ API.interceptors.response.use(
       // Only redirect if not already on auth pages
       if (!window.location.pathname.startsWith('/login') && 
           !window.location.pathname.startsWith('/register') &&
-          !window.location.pathname.startsWith('/verify-otp')) {
+          !window.location.pathname.startsWith('/verify-otp') &&
+          !window.location.pathname.startsWith('/forgot-password') &&
+          !window.location.pathname.startsWith('/reset-password')) {
         toast.error('Session expired. Please login again.');
         window.location.href = '/login';
       }

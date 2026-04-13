@@ -1,20 +1,15 @@
 const Driver = require('../models/Driver');
 
-// @desc    Onboard a new Driver with Documents
-// @route   POST /api/drivers
-// @access  Private (Logged in Vendors)
 const addDriver = async (req, res, next) => {
     try {
         const { name, contactNumber, dlExpiry, rcExpiry, permitExpiry } = req.body;
 
-        
         const driverExists = await Driver.findOne({ contactNumber });
         if (driverExists) {
             res.status(400);
             throw new Error('Driver with this contact number already exists');
         }
 
-        
         if (!req.files || !req.files.drivingLicense || !req.files.registrationCertificate || !req.files.permitAndPollution) {
             res.status(400);
             throw new Error('Please upload all required documents: DL, RC, and Permit');
@@ -50,9 +45,6 @@ const addDriver = async (req, res, next) => {
     }
 };
 
-// @desc    Get logged-in vendor's drivers
-// @route   GET /api/drivers
-// @access  Private
 const getMyDrivers = async (req, res) => {
     try {
         const drivers = await Driver.find({ vendorId: req.user.id }).sort({ createdAt: -1 });
@@ -62,6 +54,5 @@ const getMyDrivers = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
-
 
 module.exports = { addDriver, getMyDrivers };
