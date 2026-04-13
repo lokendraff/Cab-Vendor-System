@@ -11,7 +11,8 @@ const transporter = nodemailer.createTransport({
     },
     connectionTimeout: 10000, // Fail fast after 10 seconds
     greetingTimeout: 10000,
-    socketTimeout: 10000
+    socketTimeout: 10000,
+    family: 4 // Force IPv4 resolution
 });
 
 const sendOTPVerificationEmail = async (vendorEmail, otp) => {
