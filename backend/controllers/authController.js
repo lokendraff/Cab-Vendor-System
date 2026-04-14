@@ -45,7 +45,7 @@ const registerVendor = async (req, res) => {
 
         await newVendor.save();
 
-        //mail from nodemailer service to send OTP to vendor's email 
+        //send OTP to vendor's email via Resend HTTP API
         const emailSent = await sendOTPVerificationEmail(newVendor.email, generatedOtp);
         if (!emailSent) {
             console.error("Failed to send OTP email");
