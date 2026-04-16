@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CarFront, Users, ShieldAlert, Building2, Zap, FileCheck, CreditCard, UserCircle, Bell, Globe, Shield, Network } from 'lucide-react';
+import { LayoutDashboard, CarFront, Users, ShieldAlert, Building2, Zap, FileCheck, CreditCard, UserCircle, Bell, Globe, Shield, Network, FileText } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 
 const Sidebar = () => {
@@ -24,6 +24,7 @@ const Sidebar = () => {
     { name: 'Notifications', path: '/notifications', icon: Bell, roles: ['SuperVendor', 'RegionalVendor', 'CityVendor', 'LocalVendor'] },
     { name: 'Profile', path: '/profile', icon: UserCircle, roles: ['SuperVendor', 'RegionalVendor', 'CityVendor', 'LocalVendor'] },
     { name: 'Sub-Vendors', path: '/sub-vendors', icon: Network, roles: ['SuperVendor'] },
+    { name: 'Doc Approvals', path: '/approvals/pending', icon: FileText, roles: ['SuperVendor'] },
   ];
 
   // Determine which links to render

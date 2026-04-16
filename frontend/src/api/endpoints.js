@@ -58,6 +58,18 @@ const ENDPOINTS = {
     APPROVE_VENDOR: (id) => `${BASE}/admin/approve-vendor/${id}`,
   },
 
+  // Approvals
+  APPROVALS: {
+    PENDING: `${BASE}/approvals/pending`,
+    PROCESS: (entityType, id) => `${BASE}/approvals/${entityType}/${id}`,
+  },
+
+  // Super Vendor specific
+  SUPER_VENDOR: {
+    MISSING_DOCS: `${BASE}/super-vendor/descendants-missing-docs`,
+    SEND_REMINDER: `${BASE}/super-vendor/send-document-reminder`,
+  },
+
   // Payments
   PAYMENTS: {
     CREATE_ORDER: `${BASE}/payments/create-order`,

@@ -21,7 +21,7 @@ const getSuperVendorDashboard = async (req, res, next) => {
             pendingDocuments
         ] = await Promise.all([
             // 2. Fetch all immediate sub-vendors 
-            Vendor.find({ parentId: vendorId }).select('-password').lean(),
+            Vendor.find({ $or: [{ parentId: vendorId }, { parentVendor: vendorId }] }).select('-password').lean(),
             
             // 3. Count total fleet under this ENTIRE branch
             Cab.countDocuments({ vendorId: { $in: allChildIds } }),

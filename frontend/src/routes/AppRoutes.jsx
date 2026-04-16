@@ -22,6 +22,7 @@ import ProfilePage from '../pages/profile/ProfilePage';
 import NotificationsPage from '../pages/notifications/NotificationsPage';
 import SubVendorList from '../pages/subvendors/SubVendorList';
 import SuperVendorApprovals from '../pages/admin/SuperVendorApprovals';
+import PendingDocumentApprovals from '../pages/approvals/PendingDocumentApprovals';
 
 // Routes & Layout
 import ProtectedRoute from './ProtectedRoute';
@@ -60,10 +61,17 @@ const AppRoutes = () => {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
 
-        {/* SuperVendor Route: Sub-Vendor Drill-Down */}
+        {/* SuperVendor: Sub-Vendor Drill-Down */}
         <Route path="/sub-vendors" element={
           <RoleBasedRoute roles={['SuperVendor']}>
             <SubVendorList />
+          </RoleBasedRoute>
+        } />
+
+        {/* SuperVendor + Admin: Document Approvals Queue */}
+        <Route path="/approvals/pending" element={
+          <RoleBasedRoute roles={['SuperVendor', 'Admin']}>
+            <PendingDocumentApprovals />
           </RoleBasedRoute>
         } />
 

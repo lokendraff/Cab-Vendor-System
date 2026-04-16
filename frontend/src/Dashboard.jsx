@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, Users, AlertCircle, Search, Filter, Network, ChevronRight, Building2, CarFront, ShieldCheck } from 'lucide-react';
+import { Activity, Users, AlertCircle, Search, Filter, Network, ChevronRight, Building2, CarFront, ShieldCheck, Clock, FileText, User2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import API from './api/axios';
 import ENDPOINTS from './api/endpoints';
 import useAuth from './hooks/useAuth';
@@ -258,12 +259,19 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* Priority Verifications */}
+        {/* Priority Verifications Sidebar */}
         <motion.div variants={slideInRight} className="glass-panel p-6 rounded-2xl flex flex-col">
-          <h2 className="text-sm font-display font-semibold mb-5 flex items-center gap-2 tracking-wide uppercase text-gray-200">
-            <AlertCircle size={16} className="text-gold-400" />
-            Priority Verifications
-          </h2>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-sm font-display font-semibold flex items-center gap-2 tracking-wide uppercase text-gray-200">
+              <AlertCircle size={16} className="text-amber-400" />
+              Pending Verifications
+            </h2>
+            {pendingDocsCount > 0 && (
+              <span className="text-[10px] font-bold px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/20 uppercase tracking-wider">
+                {pendingDocsCount} item{pendingDocsCount !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
           
           {pendingDocsList.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-10">
@@ -274,31 +282,79 @@ const Dashboard = () => {
               <p className="text-xs text-gray-600 mt-1">Your fleet is fully compliant.</p>
             </div>
           ) : (
-            <div className="space-y-3 flex-1 max-h-[280px] overflow-y-auto pr-1">
-              {pendingDocsList.slice(0, 5).map((doc, index) => (
-                <motion.div 
-                  key={doc._id || index}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + (index * 0.08) }}
-                  className="p-3.5 glass-panel rounded-xl glass-panel-hover cursor-pointer transition-all duration-200"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-200">{doc.documentType} Verification</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">Driver: {doc.driverId?.name || "Unknown"}</p>
+            <div className="space-y-2.5 flex-1 max-h-[280px] overflow-y-auto pr-1">
+              {pendingDocsList.slice(0, 6).map((item, index) => {
+                // SuperVendor API returns driver objects with embedded docs
+                // LocalVendor API returns Document model objects
+                const isDriverObj = !!item.contactNumber; // driver objects have contactNumber
+                const driverName = isDriverObj ? item.name : (item.driverId?.name || 'Unknown');
+
+                // Collect which embedded doc types are still unverified
+                const unverifiedDocTypes = [];
+                if (isDriverObj && item.documents) {
+                  if (!item.documents.drivingLicense?.isVerified)       unverifiedDocTypes.push('DL');
+                  if (!item.documents.registrationCertificate?.isVerified) unverifiedDocTypes.push('RC');
+                  if (!item.documents.permitAndPollution?.isVerified)   unverifiedDocTypes.push('Permit');
+                } else if (item.documentType) {
+                  unverifiedDocTypes.push(item.documentType);
+                }
+
+                const docLabel = unverifiedDocTypes.length > 0
+                  ? unverifiedDocTypes.join(', ')
+                  : 'Document';
+
+                return (
+                  <motion.div
+                    key={item._id || index}
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 + index * 0.07 }}
+                    className="p-3.5 rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04] hover:border-amber-500/20 transition-all duration-200 cursor-default"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        {/* Doc type badges */}
+                        <div className="flex flex-wrap gap-1 mb-1.5">
+                          {unverifiedDocTypes.map(t => (
+                            <span key={t} className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded border border-amber-500/15 uppercase tracking-wider">
+                              <FileText size={8} /> {t}
+                            </span>
+                          ))}
+                          {unverifiedDocTypes.length === 0 && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded border border-amber-500/15 uppercase tracking-wider">Pending</span>
+                          )}
+                        </div>
+                        {/* Driver name */}
+                        <p className="text-xs font-semibold text-gray-300 flex items-center gap-1 truncate">
+                          <User2 size={11} className="text-gray-600 shrink-0" />
+                          {driverName}
+                        </p>
+                        {/* Submission date */}
+                        <p className="text-[10px] text-gray-600 flex items-center gap-1 mt-0.5">
+                          <Clock size={9} />
+                          {item.createdAt
+                            ? new Date(item.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : 'N/A'}
+                        </p>
+                      </div>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-1 bg-amber-500/10 text-amber-400 rounded-md border border-amber-500/15 uppercase tracking-wider">Pending</span>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           )}
 
+          {/* CTA — links to real approvals queue */}
           {pendingDocsCount > 0 && (
-            <button className="w-full py-2.5 mt-4 text-xs font-semibold text-gold-400 border border-gold-500/20 rounded-xl hover:bg-gold-500/5 hover:border-gold-500/30 transition-all uppercase tracking-wider">
-              View All {pendingDocsCount} Requests
-            </button>
+            <Link
+              to="/approvals/pending"
+              className="w-full py-2.5 mt-4 text-xs font-bold text-amber-400 border border-amber-500/20 rounded-xl
+                         hover:bg-amber-500/[0.06] hover:border-amber-500/30 transition-all uppercase tracking-wider
+                         flex items-center justify-center gap-1.5"
+            >
+              Review {pendingDocsCount} Pending Request{pendingDocsCount !== 1 ? 's' : ''}
+              <ChevronRight size={13} />
+            </Link>
           )}
         </motion.div>
 

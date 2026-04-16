@@ -20,6 +20,7 @@ const documentRoutes = require('./routes/document.routes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const superVendorRoutes = require('./routes/superVendorRoutes');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -48,7 +49,8 @@ app.use(express.json());
 
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5174',
+    credentials: true
 }));
 app.use(apiLimiter);
 
@@ -75,6 +77,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/approvals', require('./routes/approvalRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/super-vendor', superVendorRoutes);
 
 // 404 handler
 app.use((req, res, next) => {

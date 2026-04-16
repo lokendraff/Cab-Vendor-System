@@ -19,6 +19,11 @@ const vendorSchema = new mongoose.Schema({
         enum: ['Admin', 'SuperVendor', 'RegionalVendor', 'CityVendor', 'LocalVendor'],
         default: 'CityVendor'
     },
+    currentPlan: {
+        type: String,
+        enum: ['Starter', 'Professional', 'Enterprise'],
+        default: 'Starter'
+    },
 
     approvalStatus: {
         type: String,
@@ -80,5 +85,37 @@ const vendorSchema = new mongoose.Schema({
 vendorSchema.methods.getSubVendors = async function() {
     return await mongoose.model('Vendor').find({ parentId: this._id });
 };
+
+// Pre-save hook: Enforce Sub-Vendor limits based on SuperVendor's Fleet Plan
+vendorSchema.pre('save', async function(next) {
+    // Only check limits when a new Sub-Vendor is being created
+    if (this.isNew && this.role !== 'SuperVendor' && this.role !== 'Admin') {
+        const parentId = this.parentVendor || this.parentId;
+        if (parentId) {
+            const { getRootVendorId, getDescendantVendorIds } = require('../utils/hierarchy');
+            try {
+                const rootId = await getRootVendorId(parentId);
+                const rootVendor = await mongoose.model('Vendor').findById(rootId).select('currentPlan').lean();
+                
+                if (rootVendor) {
+                    const plan = rootVendor.currentPlan || 'Starter';
+                    
+                    if (plan === 'Starter') {
+                        // Starter plan allows 0 Sub-Vendors
+                        const descendants = await getDescendantVendorIds(rootId);
+                        const subVendorCount = descendants.length - 1; // subtract root
+                        if (subVendorCount >= 0) {
+                            return next(new Error("Plan Limit Receeded: Upgrad to Professional plan to manage more Sub-Vendors."));
+                        }
+                    }
+                    // Professional and Enterprise have Unlimited Sub-Vendors, so pass
+                }
+            } catch (err) {
+                return next(err);
+            }
+        }
+    }
+    next();
+});
 
 module.exports = mongoose.model('Vendor', vendorSchema);
