@@ -1,102 +1,182 @@
 const Vendor = require('../models/Vendor');
+const Cab = require('../models/Cab');
+const Driver = require('../models/Driver');
 const AuditLog = require('../models/AuditLog');
 const { createNotification } = require('../services/notification.service');
 
-// @desc    Block or Unblock a sub-vendor
-// @route   POST /api/admin/toggle-vendor
-// @access  Private (SuperVendor only)
-const toggleVendorStatus = async (req, res) => {
+// @desc    Get global system metrics
+// @route   GET /api/admin/metrics
+// @access  Private (Admin only)
+const getSystemMetrics = async (req, res, next) => {
     try {
-        const { targetVendorId, status, reason } = req.body; // status: true (unblock) or false (block)
+        const [
+            rolesBreakdown,
+            totalGlobalCabs,
+            totalGlobalDrivers
+        ] = await Promise.all([
+            // Use MongoDB Aggregation to group by role and count
+            Vendor.aggregate([
+                { $group: { _id: "$role", count: { $sum: 1 } } }
+            ]),
+            Cab.countDocuments(),
+            Driver.countDocuments()
+        ]);
 
-        // 1. Check if logged-in user is a SuperVendor
-        if (req.user.role !== 'SuperVendor') {
-            return res.status(403).json({ success: false, message: "Access Denied: Only Super Vendors can do this." });
-        }
+        res.status(200).json({
+            success: true,
+            data: {
+                rolesBreakdown,
+                totalGlobalCabs,
+                totalGlobalDrivers
+            }
+        });
+    } catch (error) {
+        console.error("🚨 Get System Metrics Error:", error);
+        res.status(500).json({ success: false, message: "Server Error fetching global metrics" });
+    }
+};
 
-        // 2. Find vendor by ID and update his status (isActive field)
+// @desc    Get all top-level SuperVendors
+// @route   GET /api/admin/super-vendors
+// @access  Private (Admin only)
+const getAllSuperVendors = async (req, res, next) => {
+    try {
+        const superVendors = await Vendor.find({ role: 'SuperVendor' })
+            .select('-password')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        res.status(200).json({
+            success: true,
+            count: superVendors.length,
+            data: superVendors
+        });
+    } catch (error) {
+        console.error("🚨 Fetch SuperVendors Error:", error);
+        res.status(500).json({ success: false, message: "Server Error fetching Super Vendors" });
+    }
+};
+
+// @desc    Block or Unblock ANY vendor account in the system
+// @route   PUT /api/admin/toggle-vendor/:id
+// @access  Private (Admin only)
+const toggleVendorStatus = async (req, res, next) => {
+    try {
+        const targetVendorId = req.params.id;
+        const { status, reason } = req.body; // status: true/false (active/inactive)
+
         const vendor = await Vendor.findByIdAndUpdate(
-            targetVendorId, 
-            { isActive: status }, 
-            { returnDocument: 'after' }
+            targetVendorId,
+            { isActive: status },
+            { new: true, returnDocument: 'after' }
         );
 
         if (!vendor) {
-            return res.status(404).json({ success: false, message: "Vendor not found" });
+            return res.status(404).json({ success: false, message: "Vendor not found in system" });
         }
 
-        // 3. Create an audit log for this action
+        // Create an audit log for this global admin action
         const action = status ? 'UNBLOCK_VENDOR' : 'BLOCK_VENDOR';
         const log = new AuditLog({
             actionType: action,
             performedBy: req.user.id,
             targetEntityId: targetVendorId,
             targetEntityType: 'Vendor',
-            reason: reason || "Administrative Action"
+            reason: reason || "Super Admin Global Action"
         });
         await log.save();
 
-        // 4. Send notification to the affected vendor about the status change
         const alertMessage = status 
-            ? "Your account has been UNBLOCKED by the Super Vendor." 
-            : `Your account has been BLOCKED. Reason: ${reason}`;
+            ? "Your account has been UNBLOCKED by a System Administrator." 
+            : `Your account has been BLOCKED globally. Reason: ${reason}`;
         
-        await createNotification(targetVendorId, "Account Status Updated", alertMessage, 'SYSTEM');
+        await createNotification(targetVendorId, "Global Status Updated", alertMessage, 'SYSTEM');
 
-        res.status(200).json({ 
-            success: true, 
-            message: `Vendor successfully ${status ? 'Unblocked' : 'Blocked'}`,
+        res.status(200).json({
+            success: true,
+            message: `Vendor globally ${status ? 'Unblocked' : 'Blocked'}`,
+            data: vendor,
             auditLogId: log._id
         });
-
     } catch (error) {
-        console.error("🚨 Admin Action Error:", error);
-        res.status(500).json({ success: false, message: "Server Error" });
+        console.error("🚨 Toggle Vendor Error:", error);
+        res.status(500).json({ success: false, message: "Server Error toggling vendor status" });
     }
 };
 
-// @desc    Get all audit logs (for Super Vendor audit trail)
+// @desc    Get all audit logs
 // @route   GET /api/admin/audit-logs
-// @access  Private (SuperVendor only)
-const getAuditLogs = async (req, res) => {
+// @access  Private (Admin only)
+const getAuditLogs = async (req, res, next) => {
     try {
-        if (req.user.role !== 'SuperVendor') {
-            return res.status(403).json({ success: false, message: "Access Denied: Only Super Vendors can view audit logs." });
-        }
-
         const logs = await AuditLog.find()
-            .populate('performedBy', 'name email role')
             .sort({ createdAt: -1 })
+            .populate('performedBy', 'name email role')
             .lean();
-
+            
         res.status(200).json({ success: true, count: logs.length, data: logs });
     } catch (error) {
-        console.error("🚨 Audit Log Fetch Error:", error);
-        res.status(500).json({ success: false, message: "Server Error" });
+        console.error("🚨 Fetch Audit Logs Error:", error);
+        res.status(500).json({ success: false, message: "Server Error fetching audit logs" });
     }
 };
 
-// @desc    Get all sub-vendors under the logged-in Super Vendor
+// @desc    Get all global vendors in the entire system
 // @route   GET /api/admin/vendors
-// @access  Private (SuperVendor only)
-const getAllVendors = async (req, res) => {
+// @access  Private (Admin only)
+const getAllGlobalVendors = async (req, res, next) => {
     try {
-        if (req.user.role !== 'SuperVendor') {
-            return res.status(403).json({ success: false, message: "Access Denied." });
-        }
-
-        // Fetch only vendors that have this SuperVendor as their parent
-        const allVendors = await Vendor.find({ parentVendor: req.user.id })
-            .select('-password') // Hide passwords
-            .populate('parentVendor', 'name role') // Show basic details of the parent
+        const vendors = await Vendor.find()
+            .select('-password')
             .sort({ createdAt: -1 })
             .lean();
-
-        res.status(200).json({ success: true, count: allVendors.length, data: allVendors });
+            
+        res.status(200).json({ success: true, count: vendors.length, data: vendors });
     } catch (error) {
-        console.error("🚨 Vendor Fetch Error:", error);
-        res.status(500).json({ success: false, message: "Server Error" });
+        console.error("🚨 Fetch All Vendors Error:", error);
+        res.status(500).json({ success: false, message: "Server Error fetching all vendors" });
     }
 };
 
-module.exports = { toggleVendorStatus, getAuditLogs, getAllVendors };
+// @desc    Approve vendor documents
+// @route   PUT /api/admin/approve-vendor/:id
+// @access  Private (Admin only)
+const approveVendorDocument = async (req, res, next) => {
+    try {
+        const vendorId = req.params.id;
+        
+        const vendor = await Vendor.findByIdAndUpdate(
+            vendorId,
+            { approvalStatus: 'approved' },
+            { new: true, returnDocument: 'after' }
+        );
+
+        if (!vendor) {
+            return res.status(404).json({ success: false, message: "Vendor not found in system" });
+        }
+
+        // Create an audit log for this global admin action
+        const log = new AuditLog({
+            actionType: 'APPROVE_VENDOR',
+            performedBy: req.user.id,
+            targetEntityId: vendorId,
+            targetEntityType: 'Vendor',
+            reason: `Admin approved documents for Vendor ${vendor.name}`
+        });
+        await log.save();
+
+        await createNotification(vendorId, "Documents Approved", "Your documents have been approved by the Admin.", 'DOCUMENT');
+
+        res.status(200).json({
+            success: true,
+            message: "Vendor documents approved successfully",
+            data: vendor,
+            auditLogId: log._id
+        });
+    } catch (error) {
+        console.error("🚨 Approve Vendor Error:", error);
+        res.status(500).json({ success: false, message: "Server Error approving vendor" });
+    }
+};
+
+module.exports = { getSystemMetrics, getAllSuperVendors, toggleVendorStatus, getAuditLogs, getAllGlobalVendors, approveVendorDocument };

@@ -50,9 +50,12 @@ const ENDPOINTS = {
 
   // Admin
   ADMIN: {
+    METRICS: `${BASE}/admin/metrics`,
     TOGGLE_VENDOR: `${BASE}/admin/toggle-vendor`,
     AUDIT_LOGS: `${BASE}/admin/audit-logs`,
     GET_VENDORS: `${BASE}/admin/vendors`,
+    SUPER_VENDORS: `${BASE}/admin/super-vendors`,
+    APPROVE_VENDOR: (id) => `${BASE}/admin/approve-vendor/${id}`,
   },
 
   // Payments

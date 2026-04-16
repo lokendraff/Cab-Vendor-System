@@ -20,6 +20,8 @@ import DocumentListPage from '../pages/documents/DocumentListPage';
 import PaymentPage from '../pages/payments/PaymentPage';
 import ProfilePage from '../pages/profile/ProfilePage';
 import NotificationsPage from '../pages/notifications/NotificationsPage';
+import SubVendorList from '../pages/subvendors/SubVendorList';
+import SuperVendorApprovals from '../pages/admin/SuperVendorApprovals';
 
 // Routes & Layout
 import ProtectedRoute from './ProtectedRoute';
@@ -47,7 +49,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* Common Routes (All Vendors) */}
+        {/* Common Routes (All Vendors + Admin) */}
         <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/cabs" element={<CabListPage />} />
         <Route path="/cabs/add" element={<AddCabPage />} />
@@ -58,15 +60,28 @@ const AppRoutes = () => {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
 
-        {/* Admin Routes (SuperVendor Only) */}
-        <Route path="/admin/vendors" element={
+        {/* SuperVendor Route: Sub-Vendor Drill-Down */}
+        <Route path="/sub-vendors" element={
           <RoleBasedRoute roles={['SuperVendor']}>
+            <SubVendorList />
+          </RoleBasedRoute>
+        } />
+
+        {/* Admin Routes (Admin Only) */}
+        <Route path="/admin/vendors" element={
+          <RoleBasedRoute roles={['Admin']}>
             <VendorListPage />
           </RoleBasedRoute>
         } />
         <Route path="/admin/audit" element={
-          <RoleBasedRoute roles={['SuperVendor']}>
+          <RoleBasedRoute roles={['Admin']}>
             <AuditLogsPage />
+          </RoleBasedRoute>
+        } />
+        {/* Admin: SuperVendor Approvals */}
+        <Route path="/admin/approvals" element={
+          <RoleBasedRoute roles={['Admin']}>
+            <SuperVendorApprovals />
           </RoleBasedRoute>
         } />
       </Route>

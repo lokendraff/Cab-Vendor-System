@@ -6,7 +6,7 @@ const {
     changeMyPassword,
     delegateAccess,
 } = require('../controllers/vendorController');
-const { protect } = require('../middlewares/authMiddleware');
+const { protect, authorize } = require('../middlewares/authMiddleware');
 
 // GET /api/vendors/me
 router.get('/me', protect, getMyProfile);
@@ -16,6 +16,6 @@ router.patch('/me', protect, updateMyProfile);
 router.put('/me/password', protect, changeMyPassword);
 
 // PUT /api/vendors/delegate/:id
-router.put('/delegate/:id', protect, delegateAccess);
+router.put('/delegate/:id', protect, authorize('SuperVendor', 'Admin'), delegateAccess);
 
 module.exports = router;

@@ -58,13 +58,18 @@ const updateMyProfile = async (req, res, next) => {
             const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
             const otpExpiryTime = new Date(Date.now() + 10 * 60 * 1000);
 
+            // C-01 Fix: Hash OTP before storing (consistent with registration flow)
+            const otpSalt = await bcrypt.genSalt(10);
+            const hashedOtp = await bcrypt.hash(generatedOtp, otpSalt);
+
             vendor.name = trimmedName;
             vendor.email = trimmedEmail;
             vendor.isEmailVerified = false;
-            vendor.otp = generatedOtp;
+            vendor.otp = hashedOtp; // C-01: Store hashed OTP, not plaintext
             vendor.otpExpires = otpExpiryTime;
             await vendor.save();
 
+            // Send the raw OTP via email (user needs the plaintext to verify)
             await sendOTPVerificationEmail(vendor.email, generatedOtp);
 
             const safe = await Vendor.findById(vendor._id).select('-password');
@@ -139,7 +144,7 @@ const delegateAccess = async (req, res, next) => {
         const { canOnboardCab, canOnboardDriver, canProcessPayments } = req.body;
 
         // Ensure sub-vendor exists and belongs to this SuperVendor
-        const subVendor = await Vendor.findOne({ _id: subVendorId, parentVendor: req.user.id });
+        const subVendor = await Vendor.findOne({ _id: subVendorId, parentId: req.user.id });
 
         if (!subVendor) {
             res.status(404);

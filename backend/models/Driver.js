@@ -32,6 +32,15 @@ const driverSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    approvalRemarks: {
+        type: String,
+        default: null
     }
 }, {
     timestamps: true

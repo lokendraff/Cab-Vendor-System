@@ -5,9 +5,15 @@ import API from './api/axios';
 import ENDPOINTS from './api/endpoints';
 import useAuth from './hooks/useAuth';
 import Loader from './components/ui/Loader';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 const Dashboard = () => {
   const { role, isSuperVendor } = useAuth();
+
+  // Admin gets a completely separate dashboard experience
+  if (role === 'Admin') {
+    return <AdminDashboard />;
+  }
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -156,7 +162,7 @@ const Dashboard = () => {
       >
         
         {/* KPI: Active Fleet */}
-        <motion.div variants={itemVariants} className="glass-panel-strong p-6 rounded-2xl group cursor-pointer glass-panel-hover transition-all duration-300">
+        <motion.div variants={itemVariants} className="glass-panel-strong p-6 rounded-2xl group cursor-pointer deep-hover-card transition-all duration-300">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-widest">Active Fleet</h3>
             <div className="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/15">
@@ -171,7 +177,7 @@ const Dashboard = () => {
 
         {/* KPI: Sub-Vendors or My Cabs */}
         {isSuperVendor ? (
-          <motion.div variants={itemVariants} className="glass-panel-strong p-6 rounded-2xl group cursor-pointer glass-panel-hover transition-all duration-300">
+          <motion.div variants={itemVariants} className="glass-panel-strong p-6 rounded-2xl group cursor-pointer deep-hover-card transition-all duration-300">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-widest">Sub-Vendors</h3>
               <div className="p-2 bg-gold-500/10 rounded-lg border border-gold-500/15">
@@ -184,7 +190,7 @@ const Dashboard = () => {
             </div>
           </motion.div>
         ) : (
-          <motion.div variants={itemVariants} className="glass-panel-strong p-6 rounded-2xl group cursor-pointer glass-panel-hover transition-all duration-300">
+          <motion.div variants={itemVariants} className="glass-panel-strong p-6 rounded-2xl group cursor-pointer deep-hover-card transition-all duration-300">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-widest">My Cabs</h3>
               <div className="p-2 bg-gold-500/10 rounded-lg border border-gold-500/15">

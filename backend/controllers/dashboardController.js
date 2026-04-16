@@ -1,6 +1,7 @@
 const Vendor = require('../models/Vendor');
 const Cab = require('../models/Cab');
 const Driver = require('../models/Driver');
+const { getDescendantVendorIds } = require('../utils/hierarchy');
 
 // @desc    Get centralized dashboard metrics for Super Vendor
 // @route   GET /api/dashboard/super-vendor
@@ -9,6 +10,9 @@ const getSuperVendorDashboard = async (req, res, next) => {
     try {
         const vendorId = req.vendor._id;
 
+        // 1. Get the complete array of ALL sub-vendor IDs in this tree (Recursive Array)
+        const allChildIds = await getDescendantVendorIds(vendorId);
+
         // Using Promise.all to execute multiple database queries concurrently for better performance
         const [
             subVendors,
@@ -16,18 +20,18 @@ const getSuperVendorDashboard = async (req, res, next) => {
             activeCabs,
             pendingDocuments
         ] = await Promise.all([
-            // 1. Fetch all immediate sub-vendors - ADDED .lean()
-            Vendor.find({ parentVendor: vendorId }).select('-password').lean(),
+            // 2. Fetch all immediate sub-vendors 
+            Vendor.find({ parentId: vendorId }).select('-password').lean(),
             
-            // 2. Count total fleet under this vendor
-            Cab.countDocuments({ vendorId: vendorId }),
+            // 3. Count total fleet under this ENTIRE branch
+            Cab.countDocuments({ vendorId: { $in: allChildIds } }),
             
-            // 3. Count only active fleet
-            Cab.countDocuments({ vendorId: vendorId, isActive: true }),
+            // 4. Count only active fleet deeply
+            Cab.countDocuments({ vendorId: { $in: allChildIds }, isActive: true }),
             
-            // 4. Count drivers with pending document verification
+            // 5. Count non-compliant drivers deeply
             Driver.find({
-                vendorId: vendorId,
+                vendorId: { $in: allChildIds },
                 $or: [
                     { 'documents.drivingLicense.isVerified': false },
                     { 'documents.registrationCertificate.isVerified': false },

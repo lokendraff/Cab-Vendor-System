@@ -16,8 +16,18 @@ const vendorSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['SuperVendor', 'RegionalVendor', 'CityVendor', 'LocalVendor'],
+        enum: ['Admin', 'SuperVendor', 'RegionalVendor', 'CityVendor', 'LocalVendor'],
         default: 'CityVendor'
+    },
+
+    approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    approvalRemarks: {
+        type: String,
+        default: null
     },
 
     delegatedRights: {
@@ -26,7 +36,7 @@ const vendorSchema = new mongoose.Schema({
         canProcessPayments: { type: Boolean, default: false }
     },
 
-    parentVendor: {
+    parentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vendor',
         default: null 
@@ -68,7 +78,7 @@ const vendorSchema = new mongoose.Schema({
 
 // Instance Method
 vendorSchema.methods.getSubVendors = async function() {
-    return await mongoose.model('Vendor').find({ parentVendor: this._id });
+    return await mongoose.model('Vendor').find({ parentId: this._id });
 };
 
 module.exports = mongoose.model('Vendor', vendorSchema);

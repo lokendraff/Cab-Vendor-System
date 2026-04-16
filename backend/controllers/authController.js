@@ -8,13 +8,28 @@ const mongoose = require('mongoose');
 // 1. REGISTER VENDOR (With OTP)
 const registerVendor = async (req, res) => {
     try {
-        const { name, email, password, role, parentVendor } = req.body;
+        const { name, email, password, parentId, parentVendor, role } = req.body;
+        const requestedRole = role || 'LocalVendor';
 
-        if (parentVendor) {
-            if (!mongoose.Types.ObjectId.isValid(parentVendor)) {
+        // Prevent unauthorized Admin registration
+        if (requestedRole === 'Admin') {
+            return res.status(403).json({ success: false, message: "Cannot register as Admin." });
+        }
+
+        const finalParentId = parentVendor || parentId;
+
+        // Prevent "Orphan" Vendors
+        if (requestedRole !== 'SuperVendor') {
+            if (!finalParentId) {
+                return res.status(400).json({ success: false, message: "A SuperVendor / Parent ID is mandatory for this role." });
+            }
+        }
+
+        if (finalParentId) {
+            if (!mongoose.Types.ObjectId.isValid(finalParentId)) {
                 return res.status(400).json({ success: false, message: "Invalid Parent ID format." });
             }
-            const parentExists = await Vendor.findById(parentVendor);
+            const parentExists = await Vendor.findById(finalParentId);
             if (!parentExists) {
                 return res.status(404).json({ success: false, message: "Parent vendor not found with the provided ID." });
             }
@@ -32,13 +47,17 @@ const registerVendor = async (req, res) => {
         const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
         const otpExpiryTime = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
+        // C-01 Fix: Hash OTP before storing — prevents ATO if DB is compromised
+        const otpSalt = await bcrypt.genSalt(10);
+        const hashedOtp = await bcrypt.hash(generatedOtp, otpSalt);
+
         const newVendor = new Vendor({
             name,
             email,
             password: hashedPassword,
-            role,
-            parentVendor: parentVendor || null,
-            otp: generatedOtp,
+            role: requestedRole,
+            parentId: finalParentId || null,
+            otp: hashedOtp, // C-01: Store hashed OTP, not plaintext
             otpExpires: otpExpiryTime,
             isEmailVerified: false
         });
@@ -74,8 +93,18 @@ const verifyEmailOTP = async (req, res) => {
 
         if (!vendor) return res.status(404).json({ success: false, message: "Vendor not found" });
         if (vendor.isEmailVerified) return res.status(400).json({ success: false, message: "Already verified" });
-        if (vendor.otp !== otp) return res.status(400).json({ success: false, message: "Invalid OTP" });
-        if (vendor.otpExpires < new Date()) return res.status(400).json({ success: false, message: "OTP expired" });
+
+        // C-01 Fix: Check expiry BEFORE bcrypt comparison (avoid wasting CPU on expired OTPs)
+        if (!vendor.otp || !vendor.otpExpires) {
+            return res.status(400).json({ success: false, message: "No OTP pending. Please register again." });
+        }
+        if (vendor.otpExpires < new Date()) {
+            return res.status(400).json({ success: false, message: "OTP expired" });
+        }
+
+        // C-01 Fix: Compare user-provided OTP against the bcrypt hash in DB
+        const isOtpValid = await bcrypt.compare(otp, vendor.otp);
+        if (!isOtpValid) return res.status(400).json({ success: false, message: "Invalid OTP" });
 
         vendor.isEmailVerified = true;
         vendor.otp = null;

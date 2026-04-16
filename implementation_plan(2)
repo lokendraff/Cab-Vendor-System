@@ -1,0 +1,90 @@
+# Architecture Overhaul: RBAC, Data Visibility, & Approval Workflows
+
+This plan outlines a comprehensive overhaul of the MERN Backend to address fundamental systemic flaws in hierarchical visibility, role restriction, and document approval flows.
+
+## Core Architectural Understanding
+1. **The 5-Tier Hierarchy:** The system uses 5 strict roles: `Admin` -> `SuperVendor` -> `RegionalVendor` -> `CityVendor` -> `LocalVendor`.
+2. **Data Silos (The Problem):** Currently, Cabs and Drivers only point to `vendorId` and the dashboard only queries via 1-deep relationships (`parentId: req.user.id`). This prevents higher-level vendors from seeing data deep inside their hierarchy tree.
+3. **Approval Gaps (The Problem):** Sub-vendors are directly publishing active/approved Driver vs Cab documents because everything defaults to "active/verified" state without explicit upper-tier consent.
+
+## User Review Required
+
+> [!WARNING]
+> **Data Migration Alert:** Existing Cabs and Drivers that lack an `approvalStatus` field will default to `'pending'` when we run this update. We may need to write a one-off database script to mark legacy records as `'approved'` if you don't want them soft-locked. Do you want me to provide a migration script alongside the feature code?
+
+## Proposed Changes
+
+### 1. Hierarchy & RBAC Restructuring
+Update models to strictly mandate the 5-tier setup, and formalize the hierarchy.
+#### [MODIFY] [Vendor.js](file:///c:/Users/hp/Desktop/Cab-Vendor-System/backend/models/Vendor.js)
+- Explicitly add `Admin` to the `role` enum.
+- Add `approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }` to handle sub-vendor onboarding approvals.
+
+#### [MODIFY] [Cab.js](file:///c:/Users/hp/Desktop/Cab-Vendor-System/backend/models/Cab.js) & [Driver.js](file:///c:/Users/hp/Desktop/Cab-Vendor-System/backend/models/Driver.js)
+- Add `approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }`.
+- Add `approvalRemarks: { type: String, default: null }` for rejection contexts.
+
+---
+
+### 2. Recursive MongoDB Aggregation (Tree Data Visibility)
+We will create a powerful, reusable MongoDB pipeline using `$graphLookup` to dynamically fetch an entire cross-tier hierarchy branch.
+
+#### [NEW] `backend/utils/hierarchy.js` `(Proposed helper)`
+```javascript
+const mongoose = require('mongoose');
+
+// Fetches an array of all vendor IDs at or below the given root vendor ID
+const getDescendantVendorIds = async (rootVendorId) => {
+    const hierarchy = await mongoose.model('Vendor').aggregate([
+        { $match: { _id: rootVendorId } },
+        {
+            $graphLookup: {
+                from: 'vendors',           // The collection name
+                startWith: '$_id',         // Start with the root vendor
+                connectFromField: '_id',   // Node's _id
+                connectToField: 'parentId',// Child's parentId connects to Node
+                as: 'descendants'          // Output array
+            }
+        }
+    ]);
+
+    if (!hierarchy.length) return [rootVendorId];
+    
+    // Extract array of all child IDs, plus the root ID
+    const descendantIds = hierarchy[0].descendants.map(d => d._id);
+    return [rootVendorId, ...descendantIds];
+};
+```
+
+#### [MODIFY] [dashboardController.js](file:///c:/Users/hp/Desktop/Cab-Vendor-System/backend/controllers/dashboardController.js)
+- Inject the `$graphLookup` helper to retrieve `allChildIds`.
+- Refactor the multiple `countDocuments` queries to use `{ vendorId: { $in: allChildIds } }`. This instantly solves the visibility defect where SuperVendors couldn't see deeply nested local-tier items.
+
+---
+
+### 3. The Centralized Approval Workflow
+#### [NEW] `backend/controllers/approvalController.js`
+- `GET /api/approvals/pending` — Find all Cabs and Drivers where `vendorId { $in: allChildIds }` AND `approvalStatus === 'pending'`.
+- `PUT /api/approvals/:id` — Allows an upstream vendor (with equivalent or higher role, like `SuperVendor`) to toggle status to `approved` or `rejected`.
+
+#### [MODIFY] `backend/routes/approvalRoutes.js` 
+- Create and route these new endpoints, protected under the `SuperVendor` and `Admin` guards.
+
+---
+
+### 4. Super Admin Layer
+- `Admin` will bypass `$graphLookup` entirely. If `req.user.role === 'Admin'`, they pass an empty query `{}` to see the literal universe of documents.
+- Admin dashboard components to see count sums grouping by `role: 'SuperVendor'`.
+
+## Verification Plan
+
+### Automated Tests
+- No formal testing suite yet, but we will utilize POSTMAN / frontend network emulation to verify data leakage paths are plugged.
+
+### Manual Verification
+1. Create a `SuperVendor`.
+2. Create a `RegionalVendor` under them, and a `LocalVendor` under the Regional.
+3. Have the `LocalVendor` add a Cab.
+4. Verify the Cab **only** appears as "Pending" in the dashboard of the `LocalVendor`, `RegionalVendor`, `SuperVendor`, and `Admin`.
+5. Verify a peer `SuperVendor` sees nothing (Cross-tenant boundaries are secured).
+6. Verify approval action propagates downward.

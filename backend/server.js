@@ -73,6 +73,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/approvals', require('./routes/approvalRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // 404 handler
 app.use((req, res, next) => {
