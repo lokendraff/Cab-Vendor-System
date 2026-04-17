@@ -137,21 +137,31 @@ const changeMyPassword = async (req, res, next) => {
 
 // @desc    Delegate or revoke access rights to a sub-vendor
 // @route   PUT /api/vendors/delegate/:id
-// @access  Private (Only SuperVendor)
+// @access  Private (SuperVendor or Admin)
 const delegateAccess = async (req, res, next) => {
     try {
         const subVendorId = req.params.id;
         const { canOnboardCab, canOnboardDriver, canProcessPayments } = req.body;
 
-        // Ensure sub-vendor exists and belongs to this SuperVendor
-        const subVendor = await Vendor.findOne({ _id: subVendorId, parentId: req.user.id });
+        const subVendor = await Vendor.findById(subVendorId);
 
         if (!subVendor) {
             res.status(404);
-            throw new Error('Sub-vendor not found or does not belong to you');
+            throw new Error('Sub-vendor not found');
         }
 
-        // Update delegation rights based on request
+        if (req.user.role !== 'Admin') {
+            const { getDescendantVendorIds } = require('../utils/hierarchy');
+            const descendantIds = await getDescendantVendorIds(req.user._id);
+
+            const isOwner = descendantIds.some(id => id.toString() === subVendorId.toString());
+
+            if (!isOwner) {
+                res.status(403);
+                throw new Error('Sub-vendor does not belong to your network');
+            }
+        }
+
         if (canOnboardCab !== undefined) subVendor.delegatedRights.canOnboardCab = canOnboardCab;
         if (canOnboardDriver !== undefined) subVendor.delegatedRights.canOnboardDriver = canOnboardDriver;
         if (canProcessPayments !== undefined) subVendor.delegatedRights.canProcessPayments = canProcessPayments;

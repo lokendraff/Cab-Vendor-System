@@ -1,6 +1,7 @@
 const Cab = require('../models/Cab');
 const Driver = require('../models/Driver');
 const { getDescendantVendorIds } = require('../utils/hierarchy');
+const { createNotification } = require('../services/notification.service');
 
 // @desc    Get all pending Cab and Driver documents from sub-hierarchy
 // @route   GET /api/approvals/pending
@@ -58,21 +59,57 @@ const processApproval = async (req, res, next) => {
         // Build base query to find the specific entity
         const query = { _id: id };
 
-        // Enforce hierarchy cross-tenant boundary if not Admin
+        // Enforce hierarchy boundary if not Admin
         if (req.user.role !== 'Admin') {
             const allChildIds = await getDescendantVendorIds(req.user.id);
             query.vendorId = { $in: allChildIds };
         }
 
+        // --- FIX: Prepare update payload ---
+        let updatePayload = { 
+            approvalStatus: status, 
+            approvalRemarks: remarks || null 
+        };
+
+        // If driver is approved, mark all documents as verified
+        if (status === 'approved' && entityType === 'driver') {
+            updatePayload['documents.drivingLicense.isVerified'] = true;
+            updatePayload['documents.registrationCertificate.isVerified'] = true;
+            updatePayload['documents.permitAndPollution.isVerified'] = true;
+        }
+
         const document = await Model.findOneAndUpdate(
             query,
-            { approvalStatus: status, approvalRemarks: remarks || null },
-            { new: true } // Return the freshly updated document
+            { $set: updatePayload }, // $set is required for nested updates
+            { new: true }
         );
 
         if (!document) {
             return res.status(404).json({ success: false, message: `${entityType} not found, or it belongs to a vendor outside your hierarchy.` });
         }
+
+        // --- Notification Logic ---
+        // Notify the sub-vendor about status change
+        const vendorIdToNotify = document.vendorId;
+        const documentName = entityType === 'cab' 
+            ? (document.registrationNumber || 'Cab') 
+            : (document.name || 'Driver');
+
+        const notifTitle = status === 'approved' 
+            ? `Document Approved: ${documentName}` 
+            : `Document Rejected: ${documentName}`;
+            
+        let notifMessage = `Your ${entityType} submission for ${documentName} has been ${status}.`;
+        if (status === 'rejected' && remarks) {
+            notifMessage += ` Reason: ${remarks}`;
+        }
+
+        await createNotification(
+            vendorIdToNotify,
+            notifTitle,
+            notifMessage,
+            status === 'approved' ? 'DOCUMENT' : 'ALERT'
+        );
 
         res.status(200).json({
             success: true,

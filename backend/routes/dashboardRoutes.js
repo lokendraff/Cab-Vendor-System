@@ -9,7 +9,7 @@ const cacheMiddleware = require('../middlewares/cacheMiddleware');
 router.get(
     '/super-vendor', 
     protect, 
-    authorize('SuperVendor'), 
+    authorize('SuperVendor'),
     cacheMiddleware,
     getSuperVendorDashboard
 );

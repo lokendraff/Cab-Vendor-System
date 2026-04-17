@@ -1,6 +1,8 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Transaction = require('../models/Transaction');
+const Vendor = require('../models/Vendor');
+const { createNotification } = require('../services/notification.service');
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -35,10 +37,9 @@ const createOrder = async (req, res) => {
     }
 };
 
-// API 2: Verify Payment Signature (Security Check)
 const verifyPayment = async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, planName } = req.body;
 
         const body = razorpay_order_id + "|" + razorpay_payment_id;
         const expectedSignature = crypto
@@ -54,6 +55,24 @@ const verifyPayment = async (req, res) => {
                 { razorpayOrderId: razorpay_order_id },
                 { razorpayPaymentId: razorpay_payment_id, status: 'Completed' }
             );
+
+            // Update user subscription plan securely post-verification
+            if (planName) {
+                const vendor = await Vendor.findById(req.user.id);
+                if (vendor) {
+                    vendor.currentPlan = planName;
+                    await vendor.save();
+
+                    // Send proactive notification
+                    await createNotification(
+                        vendor._id,
+                        `Plan Upgraded: ${planName}`,
+                        `Plan Upgraded to ${planName} successfully!`,
+                        'PAYMENT'
+                    );
+                }
+            }
+
             res.status(200).json({ success: true, message: "Payment Verified Successfully" });
         } else {
             res.status(400).json({ success: false, message: "Invalid Signature! Fake Payment Detected." });

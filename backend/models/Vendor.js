@@ -87,35 +87,31 @@ vendorSchema.methods.getSubVendors = async function() {
 };
 
 // Pre-save hook: Enforce Sub-Vendor limits based on SuperVendor's Fleet Plan
-vendorSchema.pre('save', async function(next) {
+vendorSchema.pre('save', async function() {
     // Only check limits when a new Sub-Vendor is being created
     if (this.isNew && this.role !== 'SuperVendor' && this.role !== 'Admin') {
         const parentId = this.parentVendor || this.parentId;
         if (parentId) {
             const { getRootVendorId, getDescendantVendorIds } = require('../utils/hierarchy');
-            try {
-                const rootId = await getRootVendorId(parentId);
-                const rootVendor = await mongoose.model('Vendor').findById(rootId).select('currentPlan').lean();
+            
+            const rootId = await getRootVendorId(parentId);
+            const rootVendor = await mongoose.model('Vendor').findById(rootId).select('currentPlan').lean();
+            
+            if (rootVendor) {
+                const plan = rootVendor.currentPlan || 'Starter';
                 
-                if (rootVendor) {
-                    const plan = rootVendor.currentPlan || 'Starter';
-                    
-                    if (plan === 'Starter') {
-                        // Starter plan allows 0 Sub-Vendors
-                        const descendants = await getDescendantVendorIds(rootId);
-                        const subVendorCount = descendants.length - 1; // subtract root
-                        if (subVendorCount >= 0) {
-                            return next(new Error("Plan Limit Receeded: Upgrad to Professional plan to manage more Sub-Vendors."));
-                        }
+                if (plan === 'Starter') {
+                    // Starter plan allows 0 Sub-Vendors
+                    const descendants = await getDescendantVendorIds(rootId);
+                    const subVendorCount = descendants.length - 1; // subtract root
+                    if (subVendorCount >= 0) {
+                        throw new Error('Plan Limit Reached! Upgrade to Professional to add more Sub-Vendors.');
                     }
-                    // Professional and Enterprise have Unlimited Sub-Vendors, so pass
                 }
-            } catch (err) {
-                return next(err);
+                // Professional and Enterprise have Unlimited Sub-Vendors, so pass
             }
         }
     }
-    next();
 });
 
 module.exports = mongoose.model('Vendor', vendorSchema);

@@ -111,7 +111,8 @@ const PaymentPage = () => {
             const verifyRes = await API.post(ENDPOINTS.PAYMENTS.VERIFY, {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature
+              razorpay_signature: response.razorpay_signature,
+              planName: plan.name
             });
 
             if (verifyRes.data.success) {

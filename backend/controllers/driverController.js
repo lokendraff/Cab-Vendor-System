@@ -1,27 +1,33 @@
 const Driver = require('../models/Driver');
 
-const addDriver = async (req, res, next) => {
+const addDriver = async (req, res) => {
     try {
         const { name, contactNumber, dlExpiry, rcExpiry, permitExpiry } = req.body;
 
         // Enforce delegation rights for sub-vendors
         if (req.vendor.role !== 'SuperVendor' && !req.vendor.delegatedRights?.canOnboardDriver) {
-            res.status(403);
-            throw new Error('You do not have permission to onboard drivers. Contact your Super Vendor.');
+            return res.status(403).json({ 
+                success: false, 
+                message: 'You do not have permission to onboard drivers. Contact your Super Vendor.' 
+            });
         }
 
         const driverExists = await Driver.findOne({ contactNumber });
         if (driverExists) {
-            res.status(400);
-            throw new Error('Driver with this contact number already exists');
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Driver with this contact number already exists' 
+            });
         }
 
         if (!req.files || !req.files.drivingLicense || !req.files.registrationCertificate || !req.files.permitAndPollution) {
-            res.status(400);
-            throw new Error('Please upload all required documents: DL, RC, and Permit');
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Please upload all required documents: DL, RC, and Permit' 
+            });
         }
 
-        const driver = await Driver.create({
+        const driver = new Driver({
             name,
             contactNumber,
             vendorId: req.vendor._id, 
@@ -41,13 +47,29 @@ const addDriver = async (req, res, next) => {
             }
         });
 
-        res.status(201).json({
+        try {
+            await driver.save();
+        } catch (saveError) {
+            if (saveError.message && saveError.message.includes('Plan Limit')) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Plan Limit Reached! Upgrade to Professional to add more drivers."
+                });
+            }
+            throw saveError;
+        }
+
+        return res.status(201).json({
             success: true,
             message: 'Driver successfully onboarded and documents uploaded!',
             data: driver
         });
     } catch (error) {
-        next(error);
+        console.error("🚨 Add Driver Error:", error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || "An unexpected server error occurred while onboarding the driver."
+        });
     }
 };
 

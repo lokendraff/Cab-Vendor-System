@@ -20,8 +20,9 @@ const ENDPOINTS = {
 
   // Cabs
   CABS: {
-    ADD: `${BASE}/cabs`,
-    GET_MY: `${BASE}/cabs`,
+    ADD:           `${BASE}/cabs`,
+    GET_MY:        `${BASE}/cabs`,
+    ASSIGN_DRIVER: (cabId) => `${BASE}/cabs/${cabId}/assign-driver`,
   },
 
   // Drivers
